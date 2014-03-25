@@ -59,6 +59,7 @@
     <Compile Include="Membership\DirectoryMembershipProvider.cs" />
     <Compile Include="Membership\DirectoryMembershipUser.cs" />
     <Compile Include="Membership\MembershipHelper.cs" />
+    <Compile Include="PasswordHash.cs" />
     <Compile Include="Permissions\AzManPrincipalPermission.cs" />
     <Compile Include="Permissions\AzManPrincipalPermissionAttribute.cs" />
     <Compile Include="Policy\AzManAuthorizationPolicy.cs" />

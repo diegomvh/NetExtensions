@@ -295,7 +295,7 @@ namespace Stj.Security
             {
                 try
                 {
-                    var context = GetClientContext3(store, userName);
+                    var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
                         var roles = (object[])context.GetRoles("");
@@ -506,17 +506,30 @@ namespace Stj.Security
 
         private string[] GetOperationsForUserCore(string userName)
         {
-            var list = new string[0];
+            var operations = new List<string>();
+            string[] scopes = new string[] { this.ScopeName };
 
             using (var store = new AzManStore(ApplicationName, StoreLocation))
             {
                 try
                 {
-                    var context = GetClientContext3(store, userName);
+                    var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
-                        var operations = context.GetOperations("");
-                        list = (from IAzOperation operation in operations select operation.Name).ToArray();
+                        object[] internalScopes = null;
+                        if (scopes != null)
+                        {
+                            internalScopes = new object[1];
+                            internalScopes[0] = scopes[0];
+                        }
+
+                        object[] operationIds = (from IAzOperation operation in store.Application.Operations select operation.OperationID).Cast<object>().ToArray();
+
+                        object[] results = (object[])context.AccessCheck("GetOperationsForUser:" + userName,
+                                                                   internalScopes, operationIds, null, null, null, null, null);
+                        for (var i = 0; i < results.Length; i++)
+                            if ((int)results[i] == 0)
+                                operations.Add(store.Application.Operations[i + 1].Name);
                     }
                 }
                 catch (Exception ex)
@@ -525,7 +538,7 @@ namespace Stj.Security
                 }
             }
 
-            return list;
+            return operations.ToArray();
         }
 
         public string[] GetTasksForUser(string userName)
@@ -547,7 +560,7 @@ namespace Stj.Security
             {
                 try
                 {
-                    var context = GetClientContext3(store, userName);
+                    var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
                         object[] internalScopes = null;
