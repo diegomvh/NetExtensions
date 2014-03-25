@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stj.Security", "Infrastruct
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stj.Security.UnitTest", "Testing\Infrastructure\Stj.Security.UnitTest\Stj.Security.UnitTest.csproj", "{0357CDC5-AF39-4301-9A18-DFBAE3F34448}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stj.DirectoryServices", "Infrastructure\Stj.DirectoryServices\Stj.DirectoryServices.csproj", "{799B6B9B-1193-486E-B216-FAB7C031FB76}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = NetExtensions.vsmdi
@@ -43,12 +45,17 @@ Global
 		{0357CDC5-AF39-4301-9A18-DFBAE3F34448}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0357CDC5-AF39-4301-9A18-DFBAE3F34448}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0357CDC5-AF39-4301-9A18-DFBAE3F34448}.Release|Any CPU.Build.0 = Release|Any CPU
+		{799B6B9B-1193-486E-B216-FAB7C031FB76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{799B6B9B-1193-486E-B216-FAB7C031FB76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{799B6B9B-1193-486E-B216-FAB7C031FB76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{799B6B9B-1193-486E-B216-FAB7C031FB76}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D6D846AF-8FA8-4743-90B3-96A412C29132} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
+		{799B6B9B-1193-486E-B216-FAB7C031FB76} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{A2FD7F80-62D9-4B19-B3E9-6BD274683B23} = {8D96AD96-34ED-498D-BDC6-63A941DFE8BB}
 		{58344635-B43D-493D-9BA3-FC0FAF83652E} = {4A160B09-F82C-40E2-90F5-93A191E59E0A}
 		{0357CDC5-AF39-4301-9A18-DFBAE3F34448} = {58344635-B43D-493D-9BA3-FC0FAF83652E}
