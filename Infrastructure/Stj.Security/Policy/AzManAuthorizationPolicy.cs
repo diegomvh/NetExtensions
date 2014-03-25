@@ -48,8 +48,9 @@ namespace Stj.Security.Policy
                     {
                         var azman = (AzManRoleProvider)provider;
                         var operations = azman.GetOperationsForUser(identity.Name);
+                        var tasks = azman.GetTasksForUser(identity.Name);
 
-                        evaluationContext.Properties["Principal"] = new AzManPrincipal(identity, roles, operations, null);
+                        evaluationContext.Properties["Principal"] = new AzManPrincipal(identity, roles, operations, tasks);
                     }
                     else
                     {

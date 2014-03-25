@@ -1,10 +1,7 @@
 ﻿#region Using
 
 using System;
-using System.IO;
 using System.Collections;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Collections.Specialized;
 using System.Configuration.Provider;
 using System.Linq;
@@ -19,16 +16,10 @@ namespace Stj.Security
     public class AzManRoleProvider : RoleProvider
     {
 
-        private const string OperationContextPrefix = "O:";
-        private const string StoreLocationTargetToken = "{currentPath}";
-        private const string StoreLocationAppBaseToken = "{baseDirectory}";
-
         #region Properties
 
         public override string ApplicationName { get; set; }
-        public string StoreLocation { get; private set; }
-        public string AuditIdentifierPrefix { get; private set; }
-        public string ScopeName { get; private set; }
+        public string ConnectionString { get; private set; }
 
         #endregion Properties
 
@@ -51,38 +42,17 @@ namespace Stj.Security
         {
             base.Initialize(name, config);
 
-            AuditIdentifierPrefix = config["auditIdentifierPrefix"];
-            if (string.IsNullOrEmpty(AuditIdentifierPrefix))
-            {
-                AuditIdentifierPrefix = "";
-            }
-
-            ScopeName = config["scopeName"];
-            if (string.IsNullOrEmpty(ScopeName))
-            {
-                ScopeName = "";
-            }
-
             ApplicationName = config["applicationName"];
             if (string.IsNullOrEmpty(ApplicationName))
             {
                 throw new AzManProviderException(SecurityResources.MessageAzManApplicationNameNotSpecified);
             }
 
-            // we need the connectionString and it must have a server
-            if (String.IsNullOrEmpty(config["connectionStringName"]))
-                throw new ProviderException("connectionStringName must be configured");
-
-            string connStringName = config["connectionStringName"];
-            config.Remove("connectionStringName");
-
-            var connectionString = ConfigurationManager.ConnectionStrings[connStringName].ConnectionString;
-            if (string.IsNullOrEmpty(connectionString))
+            ConnectionString = Configuration.Settings.AzManConnectionString;
+            if (string.IsNullOrEmpty(ConnectionString))
             {
                 throw new AzManProviderException(SecurityResources.MessageAzManConnectionStringNotSpecified);
             }
-
-            StoreLocation = GetStoreLocationPath(connectionString);
         }  
 
         /// <summary>
@@ -111,13 +81,13 @@ namespace Stj.Security
                 roles[i++] = role;
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
                     foreach (var userName in userNames)
                     {
-                        var user = MembershipHelper.GetUser(userName);
+                        var user = Membership.GetUser(userName);
                         if (user == null)
                         {
                             throw new ProviderException(string.Format(SecurityResources.MessageAzManUserDoesNotExist, userName));
@@ -160,7 +130,7 @@ namespace Stj.Security
         {
             CheckParameter(ref roleName, true, true, true, 0, "roleName");
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 if (RoleExists(roleName))
                 {
@@ -219,7 +189,7 @@ namespace Stj.Security
                 }
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
@@ -252,7 +222,7 @@ namespace Stj.Security
         {
             var list = new string[0];
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
@@ -291,11 +261,11 @@ namespace Stj.Security
         {
             var list = new string[0];
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
-                    var context = GetClientContext3(store, userName);
+                    var context = (IAzClientContext3)GetClientContext(store, userName);
                     if (context != null)
                     {
                         var roles = (object[])context.GetRoles("");
@@ -413,13 +383,13 @@ namespace Stj.Security
                 roles[i++] = role;
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
                     foreach (var userName in userNames)
                     {
-                        var user = MembershipHelper.GetUser(userName);
+                        var user = Membership.GetUser(userName);
                         if (user == null)
                         {
                             throw new ProviderException(string.Format(SecurityResources.MessageAzManUserDoesNotExist, userName));
@@ -508,11 +478,11 @@ namespace Stj.Security
         {
             var list = new string[0];
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
-                    var context = GetClientContext3(store, userName);
+                    var context = (IAzClientContext3)GetClientContext(store, userName);
                     if (context != null)
                     {
                         var operations = context.GetOperations("");
@@ -526,57 +496,6 @@ namespace Stj.Security
             }
 
             return list;
-        }
-
-        public string[] GetTasksForUser(string userName)
-        {
-            CheckParameter(ref userName, true, false, true, 0, "userName");
-            if (userName.Length < 1)
-            {
-                return new string[0];
-            }
-            return GetTasksForUserCore(userName);
-        }
-
-        private string[] GetTasksForUserCore(string userName)
-        {
-            var tasks = new List<string>();
-            string[] scopes = new string[] { this.ScopeName };
-
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
-            {
-                try
-                {
-                    var context = GetClientContext3(store, userName);
-                    if (context != null)
-                    {
-                        object[] internalScopes = null;
-                        if (scopes != null)
-                        {
-                            internalScopes = new object[1];
-                            internalScopes[0] = scopes[0];
-                        }
-
-                        foreach (IAzTask task in store.Application.Tasks)
-                        {
-                            object[] operationIds = GetTaskOperations(store, new string[] { task.Name });
-                            if (operationIds.Length != 0)
-                            {
-                                object[] results = (object[])context.AccessCheck("GetTasksForUser:" + userName,
-                                                                   internalScopes, operationIds, null, null, null, null, null);
-                                if ((from int result in results select result).All(r => r == 0))
-                                    tasks.Add(task.Name);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new AzManProviderException(SecurityResources.MessageAzManAnExceptionOccured, ex);
-                }
-            }
-
-            return tasks.ToArray();
         }
 
         /// <summary>
@@ -609,188 +528,6 @@ namespace Stj.Security
             var operations = GetOperationsForUser(userName);
             var operation = operations.Where(o => o == operationName).FirstOrDefault();
             return (operation != null);
-        }
-
-        public bool CanUserAccessTask(string userName, string taskName)
-        {
-            CheckParameter(ref userName, true, false, true, 0, "userName");
-            if (userName.Length < 1)
-            {
-                return false;
-            }
-            CheckParameter(ref taskName, true, true, true, 0, "taskName");
-            return this.CanUserAccessTaskCore(userName, taskName);
-        }
-
-        private bool CanUserAccessTaskCore(string userName, string taskName)
-        {
-            CheckParameter(ref taskName, true, true, true, 0x100, "taskName");
-
-            // TODO: Ensure Tasts exists
-
-            var operations = GetTasksForUser(userName);
-            var operation = operations.Where(o => o == taskName).FirstOrDefault();
-            return (operation != null);
-        }
-
-        #region Authorize API
-        public bool Authorize(string userName, string context)
-        {
-            string auditIdentifier = this.AuditIdentifierPrefix + userName + ":" + context;
-
-            bool result = false;
-            bool operation = false;
-            if (context.IndexOf(OperationContextPrefix) == 0)
-            {
-                operation = true;
-                context = context.Substring(OperationContextPrefix.Length);
-            }
-
-            if (operation)
-            {
-                string[] operations = new string[] { context };
-                result = CheckAccessOperations(auditIdentifier, userName, operations);
-            }
-            else
-            {
-                string[] tasks = new string[] { context };
-                result = CheckAccessTasks(auditIdentifier, userName, tasks);
-            }
-            
-            //TODO: Cache
-            return result;
-        }
-
-        private bool CheckAccessTasks(string auditIdentifier, string userName, string[] tasks)
-        {
-            string[] scopes = new string[] { this.ScopeName };
-
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
-            {
-                try
-                {
-                    IAzClientContext2 clientCtx = GetClientContext2(store, userName);
-                    object[] operationIds = GetTaskOperations(store, tasks);
-
-                    object[] internalScopes = null;
-                    if (scopes != null)
-                    {
-                        internalScopes = new object[1];
-                        internalScopes[0] = scopes[0];
-                    }
-
-                    object[] result = (object[])clientCtx.AccessCheck(auditIdentifier,
-                                                                       internalScopes, operationIds, null, null, null, null, null);
-                    foreach (int accessAllowed in result)
-                    {
-                        if (accessAllowed != 0)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                catch (COMException comEx)
-                {
-                    throw new AzManProviderException(comEx.Message, comEx);
-                }
-            }
-            return true;
-        }
-
-        private object[] GetTaskOperations(AzManStore store, string[] tasks)
-        {
-            string[] scopes = new string[] { this.ScopeName };
-            StringCollection operations = new StringCollection();
-            foreach (String task in tasks)
-            {
-                IAzScope scope = null;
-                if ((scopes != null) && (scopes[0].Length > 0))
-                {
-                    scope = store.Application.OpenScope(scopes[0], null);
-                }
-
-                IAzTask azTask = null;
-                if (scope != null)
-                {
-                    azTask = scope.OpenTask(task, null);
-                }
-                else
-                {
-                    azTask = store.Application.OpenTask(task, null);
-                }
-
-                Array ops = azTask.Operations as Array;
-                foreach (String op in ops)
-                {
-                    operations.Add(op);
-                }
-            }
-
-            object[] operationIds = new object[operations.Count];
-            for (int index = 0; index < operations.Count; index++)
-            {
-                operationIds[index] = store.Application.OpenOperation(operations[index], null).OperationID;
-            }
-
-            return operationIds;
-        }
-
-        private bool CheckAccessOperations(string auditIdentifier, string userName, string[] operations)
-        {
-            string[] scopes = new string[] { this.ScopeName };
-
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
-            {
-                try
-                {
-                    IAzClientContext2 clientCtx = GetClientContext2(store, userName);
-                    object[] operationIds = new object[operations.Length];
-                    for (int index = 0; index < operations.Length; index++)
-                    {
-                        operationIds[index] = store.Application.OpenOperation(operations[index], null).OperationID;
-                    }
-
-                    object[] internalScopes = null;
-                    if (scopes != null)
-                    {
-                        internalScopes = new object[1];
-                        internalScopes[0] = scopes[0];
-                    }
-
-                    object[] result = (object[])clientCtx.AccessCheck(auditIdentifier,
-                                                                       internalScopes, operationIds, null, null, null, null, null);
-                    foreach (int accessAllowed in result)
-                    {
-                        if (accessAllowed != 0)
-                        {
-                            return false;
-                        }
-                    }
-                }
-                catch (COMException comEx)
-                {
-                    throw new AzManProviderException(comEx.Message, comEx);
-                }
-            }
-            return true;
-        }
-        #endregion
-
-        public static string GetStoreLocationPath(string storeLocation)
-        {
-            string store = storeLocation;
-            if (store.IndexOf(StoreLocationTargetToken) > -1)
-            {
-                string dir = Directory.GetCurrentDirectory().Replace(@"\", "/");
-                store = store.Replace(StoreLocationTargetToken, dir);
-            }
-            if (store.IndexOf(StoreLocationAppBaseToken) > -1)
-            {
-                string dir = AppDomain.CurrentDomain.BaseDirectory.Replace(@"\", "/");
-                store = store.Replace(StoreLocationAppBaseToken, dir);
-            }
-
-            return store;
         }
 
         #endregion Provider
@@ -847,45 +584,21 @@ namespace Stj.Security
             }
         }
 
-        private IAzClientContext3 GetClientContext3(AzManStore store, string userName)
+        private IAzClientContext GetClientContext(AzManStore store, string userName)
         {
-            var user = MembershipHelper.GetUser(userName);
+            var user = Membership.GetUser(userName);
             if (user == null)
             {
                 throw new ProviderException(string.Format(SecurityResources.MessageAzManUserDoesNotExist, userName)); 
             }
-            return (IAzClientContext3)store.Application.InitializeClientContextFromStringSid(user.ProviderUserKey.ToString(), (int)tagAZ_PROP_CONSTANTS.AZ_CLIENT_CONTEXT_SKIP_GROUP, null);
-        }
-
-        private IAzClientContext2 GetClientContext2(AzManStore store, string userName)
-        {
-            var user = MembershipHelper.GetUser(userName);
-            if (user == null)
-            {
-                throw new ProviderException(string.Format(SecurityResources.MessageAzManUserDoesNotExist, userName));
-            }
-            IAzClientContext2 clientCtx = ((IAzApplication2)store.Application).InitializeClientContext2("Usuario");
-            List<object> userSids = new List<object>();
-            userSids.Add((object)user.ProviderUserKey.ToString());
-
-            if (user is DirectoryMembershipUser)
-            {
-                foreach (string GroupSid in ((DirectoryMembershipUser)user).GetGroupSids())
-                    userSids.Add((object)GroupSid);
-            }
-            clientCtx.AddStringSids(userSids.ToArray());
-            //Set LDAP QueryDN for adam user. This is needed if LDAP query groups are involved.
-            // todo traer el host del usuario por si es de un ad o de un lds
-            //clientCtx.LDAPQueryDN = "ldap://" + identity.AuthenticationServer + "/" + identity.DistinguishedName;
-
-            return clientCtx;
+            return store.Application.InitializeClientContextFromStringSid(user.ProviderUserKey.ToString(), (int)tagAZ_PROP_CONSTANTS.AZ_CLIENT_CONTEXT_SKIP_GROUP, null);
         }
 
         private IAzRole GetRole(string roleName)
         {
             IAzRole role = null;
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, ConnectionString))
             {
                 try
                 {
