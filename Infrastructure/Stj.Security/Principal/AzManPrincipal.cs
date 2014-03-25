@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Security.Principal;
+using System.Runtime.Serialization;
 
 #endregion Using
 
@@ -16,24 +17,26 @@ namespace Stj.Security.Principal
         private IIdentity _identity = null;
         private string[] _roles = null;
         private string[] _operations = null;
+        private string[] _tasks = null;
 
         #endregion Members
 
         #region Properties
-
+        public string Name { get { return this.Identity.Name;  } }
         public IIdentity Identity { get { return _identity; } }
 
         #endregion Properties
 
         #region Constructors
 
-        public AzManPrincipal(IIdentity identity) : this(identity, null, null) { }
+        public AzManPrincipal(IIdentity identity) : this(identity, null, null, null) { }
 
-        public AzManPrincipal(IIdentity identity, string[] roles, string[] operations)
+        public AzManPrincipal(IIdentity identity, string[] roles, string[] operations, string[] tasks)
         {
             _identity = identity;
             _roles = roles;
             _operations = operations;
+            _tasks = tasks;
         }
 
         #endregion Constructors
@@ -57,21 +60,19 @@ namespace Stj.Security.Principal
             if (requiredOperations == null || requiredOperations.Length == 0) return true;
             if (_operations == null || _operations.Length == 0) return false;
 
-            var hasOperations = true;
-            foreach (var operation in requiredOperations)
-            {
-                if (_operations.Contains(operation) == false)
-                {
-                    hasOperations = false;
-                    break;
-                }
-            }
-            return hasOperations;
+            return requiredOperations.All(t => _operations.Contains(t));
+        }
+
+        public bool HasRequiredTasks(string[] requiredTasks)
+        {
+            if (requiredTasks == null || requiredTasks.Length == 0) return true;
+            if (_tasks == null || _tasks.Length == 0) return false;
+
+            return requiredTasks.All(t => _tasks.Contains(t));
         }
 
         #endregion Public
 
         #endregion Methods
-
     }
 }
