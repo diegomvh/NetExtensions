@@ -16,6 +16,7 @@ namespace Stj.Security.Permissions
 
         public bool IsAuthenticated { get; set; }
         public string Operation { get; set; }
+        public string Task { get; set; }
 
         #endregion Properties
 
