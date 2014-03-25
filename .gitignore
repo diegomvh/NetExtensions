@@ -35,6 +35,7 @@ TestResult.xml
 *.pdb
 *.pgc
 *.pgd
+*.orig
 *.rsp
 *.sbr
 *.tlb
