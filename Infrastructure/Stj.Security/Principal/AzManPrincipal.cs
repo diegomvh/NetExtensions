@@ -9,21 +9,17 @@ using System.Runtime.Serialization;
 
 namespace Stj.Security.Principal
 {
-    public class AzManPrincipal : IPrincipal
+    [Serializable]
+    public class AzManPrincipal : IUserPrincipal
     {
 
-        #region Members
-
-        private IIdentity _identity = null;
-        private string[] _roles = null;
-        private string[] _operations = null;
-        private string[] _tasks = null;
-
-        #endregion Members
-
         #region Properties
-        public string Name { get { return this.Identity.Name;  } }
-        public IIdentity Identity { get { return _identity; } }
+        public string Name { get { return this.Identity.Name; } }
+        public bool IsAuthenticated { get { return this.Identity.IsAuthenticated; } }
+        public IIdentity Identity { get; private set; }
+        public string[] Roles { get; set; }
+        public string[] Operations { get; set; }
+        public string[] Tasks { get; set; }
 
         #endregion Properties
 
@@ -33,10 +29,10 @@ namespace Stj.Security.Principal
 
         public AzManPrincipal(IIdentity identity, string[] roles, string[] operations, string[] tasks)
         {
-            _identity = identity;
-            _roles = roles;
-            _operations = operations;
-            _tasks = tasks;
+            Identity = identity;
+            Roles = roles;
+            Operations = operations;
+            Tasks = tasks;
         }
 
         #endregion Constructors
@@ -48,9 +44,9 @@ namespace Stj.Security.Principal
         public bool IsInRole(string role)
         {
             var isInRole = false;
-            if (_roles != null)
+            if (Roles != null)
             {
-                isInRole = _roles.Contains(role);
+                isInRole = Roles.Contains(role);
             }
             return isInRole;
         }
@@ -58,21 +54,22 @@ namespace Stj.Security.Principal
         public bool HasRequiredOperations(string[] requiredOperations)
         {
             if (requiredOperations == null || requiredOperations.Length == 0) return true;
-            if (_operations == null || _operations.Length == 0) return false;
+            if (Operations == null || Operations.Length == 0) return false;
 
-            return requiredOperations.All(t => _operations.Contains(t));
+            return requiredOperations.All(t => Operations.Contains(t));
         }
 
         public bool HasRequiredTasks(string[] requiredTasks)
         {
             if (requiredTasks == null || requiredTasks.Length == 0) return true;
-            if (_tasks == null || _tasks.Length == 0) return false;
+            if (Tasks == null || Tasks.Length == 0) return false;
 
-            return requiredTasks.All(t => _tasks.Contains(t));
+            return requiredTasks.All(t => Tasks.Contains(t));
         }
 
         #endregion Public
 
         #endregion Methods
+
     }
 }
