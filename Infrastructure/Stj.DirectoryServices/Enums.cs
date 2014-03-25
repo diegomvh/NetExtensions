@@ -30,14 +30,14 @@ namespace Stj.DirectoryServices
 
 	}
 
-    internal enum DirectoryType
+    public enum DirectoryType
     {
         AD,
         ADAM,
         Unknown
     }
 
-    internal enum ConnectionProtection
+    public enum ConnectionProtection
     {
         Secure,
         SecureSocketsLayer,

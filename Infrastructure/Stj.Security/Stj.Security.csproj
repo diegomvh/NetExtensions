@@ -39,6 +39,8 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Web" />
@@ -54,6 +56,9 @@
     <Compile Include="AzManStore.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Management\WebServiceErrorEvent.cs" />
+    <Compile Include="Membership\DirectoryMembershipProvider.cs" />
+    <Compile Include="Membership\DirectoryMembershipUser.cs" />
+    <Compile Include="Membership\MembershipHelper.cs" />
     <Compile Include="Permissions\AzManPrincipalPermission.cs" />
     <Compile Include="Permissions\AzManPrincipalPermissionAttribute.cs" />
     <Compile Include="Policy\AzManAuthorizationPolicy.cs" />
@@ -66,7 +71,12 @@
       <CustomToolNamespace>Stj.Security</CustomToolNamespace>
     </Compile>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Stj.DirectoryServices\Stj.DirectoryServices.csproj">
+      <Project>{799B6B9B-1193-486E-B216-FAB7C031FB76}</Project>
+      <Name>Stj.DirectoryServices</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\SecurityResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -5,7 +5,7 @@ using System.DirectoryServices;
 
 namespace Stj.DirectoryServices
 {
-    internal sealed class LdapUtils
+    public sealed class LdapUtils
     {
         /// <summary>
         /// Parse the path name to get the server so we can determine what we are working with.
@@ -13,7 +13,7 @@ namespace Stj.DirectoryServices
         /// doesn't work well without it.
         /// </summary>
         /// <returns></returns>
-        static internal string GetServerFromAdsPath(string adsPath)
+        public static string GetServerFromAdsPath(string adsPath)
         {
             const int E_ADS_BAD_PATHNAME = -2147463168;
 
@@ -75,7 +75,7 @@ namespace Stj.DirectoryServices
             return null;
         }
 
-        internal static DirectoryEntry CreateDirectoryEntry(
+        public static DirectoryEntry CreateDirectoryEntry(
             string path,
             string server,
             ConnectionProtection protection,
@@ -114,23 +114,23 @@ namespace Stj.DirectoryServices
                 );
         }
 
-        internal static DirectoryEntry CreateDirectoryEntry(string path, string server, ConnectionProtection protection)
+        public static DirectoryEntry CreateDirectoryEntry(string path, string server, ConnectionProtection protection)
         {
             return CreateDirectoryEntry(path, server, protection, null, null);
         }
 
-        internal static DirectoryEntry CreateDirectoryEntry(string path, string server)
+        public static DirectoryEntry CreateDirectoryEntry(string path, string server)
         {
             return CreateDirectoryEntry(path, server, ConnectionProtection.Secure, null, null);
         }
 
-        internal static DirectoryEntry CreateDirectoryEntry(string path)
+        public static DirectoryEntry CreateDirectoryEntry(string path)
         {
             return CreateDirectoryEntry(path, null, ConnectionProtection.Secure, null, null);
         }
 
         //detects which ldap server we are using
-        internal static DirectoryType GetDirectoryType(DirectoryEntry rootDSE)
+        public static DirectoryType GetDirectoryType(DirectoryEntry rootDSE)
         {
             const string ADAM_OID = "1.2.840.113556.1.4.1851";
             const string AD_OID = "1.2.840.113556.1.4.800";
@@ -146,7 +146,7 @@ namespace Stj.DirectoryServices
             return DirectoryType.Unknown;
         }
 
-        internal static string GetNetbiosDomainName(DirectoryEntry rootDSE, string server, string username, string password)
+        public static string GetNetbiosDomainName(DirectoryEntry rootDSE, string server, string username, string password)
         {
             string dnc = (string)rootDSE.Properties["defaultNamingContext"].Value;
             string cnc = (string)rootDSE.Properties["configurationNamingContext"].Value;
