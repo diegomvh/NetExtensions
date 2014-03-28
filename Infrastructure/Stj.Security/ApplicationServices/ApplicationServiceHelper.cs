@@ -37,7 +37,7 @@ namespace Stj.Security.ApplicationServices
             }
             if (!isAuthenticated)
             {
-                throw new HttpException(SecurityResources.MessageUserIsNotAuthenticated);
+                throw new HttpException(Resources.MessageUserIsNotAuthenticated);
             }
         }
 
@@ -113,7 +113,7 @@ namespace Stj.Security.ApplicationServices
         {
             if (!RoleServiceEnabled)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, SecurityResources.MessageAppServiceDisabled, new object[] { "RoleService" }));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resources.MessageAppServiceDisabled, new object[] { "RoleService" }));
             }
         }
 

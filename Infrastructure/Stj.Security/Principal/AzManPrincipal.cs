@@ -67,6 +67,13 @@ namespace Stj.Security.Principal
             return requiredTasks.All(t => Tasks.Contains(t));
         }
 
+        public bool Can(string permission)
+        { 
+            //TODO: Cosas locas como (algo1 && algo2) || algo3  :)
+            var permissions = new string[] { permission };
+            return this.HasRequiredOperations(permissions) || this.HasRequiredTasks(permissions);
+        }
+
         #endregion Public
 
         #endregion Methods

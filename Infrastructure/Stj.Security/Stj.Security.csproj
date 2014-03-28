@@ -51,13 +51,11 @@
     <Compile Include="ApplicationServices\ApplicationServiceHelper.cs" />
     <Compile Include="ApplicationServices\AuthorizationService.cs" />
     <Compile Include="ApplicationServices\DataContractDefinition.cs" />
-    <Compile Include="AzManProviderException.cs" />
-    <Compile Include="AzManRoleProvider.cs" />
-    <Compile Include="AzManStore.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Management\WebServiceErrorEvent.cs" />
     <Compile Include="Membership\DirectoryMembershipProvider.cs" />
     <Compile Include="Membership\DirectoryMembershipUser.cs" />
+    <Compile Include="Membership\LdapMembershipProvider.cs" />
     <Compile Include="Membership\MembershipHelper.cs" />
     <Compile Include="PasswordHash.cs" />
     <Compile Include="Permissions\AzManPrincipalPermission.cs" />
@@ -66,23 +64,32 @@
     <Compile Include="Principal\AzManPrincipal.cs" />
     <Compile Include="Principal\UserPrincipal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\SecurityResources.Designer.cs">
+    <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>SecurityResources.resx</DependentUpon>
+      <DependentUpon>Resources.resx</DependentUpon>
       <CustomToolNamespace>Stj.Security</CustomToolNamespace>
     </Compile>
+    <Compile Include="Role\AzManProviderException.cs" />
+    <Compile Include="Role\AzManRoleProvider.cs" />
+    <Compile Include="Role\AzManStore.cs" />
+    <Compile Include="Role\LdapRoleProvider.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Novell.Directory.LDAP\Novell.Directory.LDAP.csproj">
+      <Project>{59EF64B6-62E4-46F1-8702-F86F27F411C0}</Project>
+      <Name>Novell.Directory.LDAP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Stj.DirectoryServices\Stj.DirectoryServices.csproj">
       <Project>{799B6B9B-1193-486E-B216-FAB7C031FB76}</Project>
       <Name>Stj.DirectoryServices</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\SecurityResources.resx">
+    <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>SecurityResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
       <CustomToolNamespace>Stj.Security</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>

@@ -63,7 +63,7 @@ namespace Stj.Security.Permissions
             }
             else
             {
-                throw new SecurityException(SecurityResources.MessagePermissionAccessDeniedInvalidPrincipal);
+                throw new SecurityException(Resources.MessagePermissionAccessDeniedInvalidPrincipal);
             }
         }
 
@@ -71,7 +71,7 @@ namespace Stj.Security.Permissions
         {
             if (IsAuthenticated && (principal.Identity.IsAuthenticated == false))
             {
-                throw new SecurityException(SecurityResources.MessagePermissionAccessDeniedUserNotAuthenticated);
+                throw new SecurityException(Resources.MessagePermissionAccessDeniedUserNotAuthenticated);
             }
         }
 
@@ -81,7 +81,7 @@ namespace Stj.Security.Permissions
 
             if (principal.HasRequiredOperations(RequiredOperations) == false)
             {
-                throw new SecurityException(SecurityResources.MessagePermissionAccessDeniedUserCannotAccess);
+                throw new SecurityException(Resources.MessagePermissionAccessDeniedUserCannotAccess);
             }
         }
 

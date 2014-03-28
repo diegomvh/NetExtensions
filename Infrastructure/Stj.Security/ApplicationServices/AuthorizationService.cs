@@ -96,19 +96,19 @@ namespace Stj.Security.ApplicationServices
 
         private static void EnsureProviderEnabled()
         {
-            if (Roles.Enabled == false) throw new ProviderException(SecurityResources.MessageRolesFeatureNotEnabled);
+            if (Roles.Enabled == false) throw new ProviderException(Resources.MessageRolesFeatureNotEnabled);
         }
 
         private AzManRoleProvider GetRoleProvider(IPrincipal user)
         {
             var provider = (AzManRoleProvider)Roles.Providers[Roles.Provider.Name];
-            if (provider == null) throw new ProviderException(SecurityResources.MessageRoleProviderNotFound);
+            if (provider == null) throw new ProviderException(Resources.MessageRoleProviderNotFound);
             return provider;
         }
 
         private void LogException(Exception ex)
         {
-            new WebServiceErrorEvent(SecurityResources.MessageUnhandledException, this, ex).Raise();
+            new WebServiceErrorEvent(Resources.MessageUnhandledException, this, ex).Raise();
         }
 
         #endregion Private
