@@ -6,7 +6,8 @@
     using System.Collections.Generic;
     using System.Web.Security;
     using Stj.DirectoryServices;
-
+    using System.DirectoryServices;
+    
     public class DirectoryMembershipUser : MembershipUser
     {
         public override object ProviderUserKey { get { return this._admuser.ProviderUserKey; } }
@@ -14,6 +15,11 @@
         public string Nombres { get { return this._dsuser.Nombres; } set { this._dsuser.Nombres = value; } }
         public string Apellidos { get { return this._dsuser.Apellidos; } set { this._dsuser.Apellidos = value; } }
         public string Dni { get { return this._dsuser.Dni; } set { this._dsuser.Dni = value; } }
+        public string EmployeeId { get { return this._dsuser.EmployeeId; } set { this._dsuser.EmployeeId = value; } }
+        public string Localidad { get { return this._dsuser.Localidad; } set { this._dsuser.Localidad = value; } }
+        public string Provincia { get { return this._dsuser.Provincia; } set { this._dsuser.Provincia = value; } }
+        public string Domicilio { get { return this._dsuser.Domicilio; } set { this._dsuser.Domicilio = value; } }
+        public string Telefono { get { return this._dsuser.VoiceTelephoneNumber; } set { this._dsuser.VoiceTelephoneNumber = value; } }
         public string AuthenticationServer { get { return this._dsuser.AuthenticationServer; } }
         public SecurityIdentifier Sid { get { return (this._dsuser != null) ? this._dsuser.Sid : null; } }
         public IEnumerable<string> Organizations { get { return this._dsuser.Organizations; } }
@@ -44,6 +50,34 @@
                 return new string[] { };
             return (from System.DirectoryServices.AccountManagement.Principal g in this._dsuser.GetGroups()
                     select g.Sid.ToString()).ToArray();
+        }
+
+        public void Save() {
+            this._dsuser.Save();
+        }
+
+        public void SetPassword(string password) {
+            DirectoryEntry directoryEntry = this._dsuser.GetUnderlyingObject() as DirectoryEntry;
+            const long ADS_OPTION_PASSWORD_PORTNUMBER = 6;
+            const long ADS_OPTION_PASSWORD_METHOD = 7;
+
+            const int ADS_PASSWORD_ENCODE_CLEAR = 1;
+
+            try
+            {
+                directoryEntry.Invoke("SetOption", new object[] { ADS_OPTION_PASSWORD_PORTNUMBER, 50000 });
+                directoryEntry.Invoke("SetOption", new object[]
+                    {ADS_OPTION_PASSWORD_METHOD,
+                     ADS_PASSWORD_ENCODE_CLEAR});
+                directoryEntry.Invoke("SetPassword", new object[] { password });
+                directoryEntry.RefreshCache();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error:   Set password failed.");
+                Console.WriteLine("         {0}.", e.Message);
+                return;
+            }
         }
     }
 }

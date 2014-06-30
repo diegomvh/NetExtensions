@@ -44,10 +44,13 @@ namespace Stj.Security
         public const int SALT_BYTE_SIZE = 24;
         public const int HASH_BYTE_SIZE = 24;
         public const int PBKDF2_ITERATIONS = 1000;
+        public const int TOKEN_BYTE_SIZE = 20;
 
         public const int ITERATION_INDEX = 0;
         public const int SALT_INDEX = 1;
         public const int PBKDF2_INDEX = 2;
+        public const int PREFIX_INDEX = 3;
+        public const int SUFFIX_INDEX = 4;
               
         /// <summary>
         /// Creates a salted PBKDF2 hash of the password.
@@ -66,6 +69,39 @@ namespace Stj.Security
             return PBKDF2_ITERATIONS + ":" +
                 Convert.ToBase64String(salt) + ":" +
                 Convert.ToBase64String(hash);
+        }
+
+        public static string CreateHardPassword(string password, string prefix = "")
+        {
+            // Generate a random salt
+            RNGCryptoServiceProvider csprng = new RNGCryptoServiceProvider();
+            byte[] salt = new byte[SALT_BYTE_SIZE];
+            csprng.GetBytes(salt);
+
+            // Hash the password and encode the parameters
+            byte[] hash = PBKDF2(password, salt, PBKDF2_ITERATIONS, HASH_BYTE_SIZE);
+            int length = hash.Length;
+            var hardPassword = Convert.ToBase64String(hash);
+            return password + prefix + hardPassword + ":" + PBKDF2_ITERATIONS + ":" +
+                Convert.ToBase64String(salt) + ":" +
+                length + ":" + prefix;
+        }
+
+        /// <summary>
+        /// Recreate a hash of the password based on the iterations and the salt.
+        /// </summary>
+        /// <param name="password">The password to hash.</param>
+        /// <returns>The hash of the password.</returns>
+        public static string RecreateHardPassword(string password, string passwordKey)
+        {
+            // Extract the parameters from the hash
+            char[] delimiter = { ':' };
+            string[] split = passwordKey.Split(delimiter);
+            int iterations = Int32.Parse(split[ITERATION_INDEX]);
+            byte[] salt = Convert.FromBase64String(split[SALT_INDEX]);
+            int length = Int32.Parse(split[PBKDF2_INDEX]);
+            string prefix = split[PREFIX_INDEX];
+            return password + prefix + Convert.ToBase64String(PBKDF2(password, salt, iterations, length));
         }
 
         /// <summary>
@@ -116,6 +152,21 @@ namespace Stj.Security
             Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt);
             pbkdf2.IterationCount = iterations;
             return pbkdf2.GetBytes(outputBytes);
+        }
+
+        /// <summary>
+        /// Creates a url token.
+        /// </summary>
+        /// <param name="password">The password to hash.</param>
+        /// <returns>The hash of the password.</returns>
+        public static string CreateToken()
+        {
+            // Generate a random salt
+            RNGCryptoServiceProvider csprng = new RNGCryptoServiceProvider();
+            byte[] token = new byte[TOKEN_BYTE_SIZE * 2];
+            csprng.GetBytes(token);
+
+            return Convert.ToBase64String(token).Substring(0, TOKEN_BYTE_SIZE).Replace('+', '-').Replace('/', '_');
         }
     }
 } 

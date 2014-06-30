@@ -7,6 +7,8 @@ using System.Security.Principal;
 using System.Web;
 using System.Web.Security;
 using Stj.Security.Principal;
+using System.Collections.Generic;
+using AZROLESLib;
 
 #endregion Using
 
@@ -25,6 +27,7 @@ namespace Stj.Security.Policy
 
         public string Id { get { return _id.ToString(); } }
         public ClaimSet Issuer { get { return ClaimSet.System; } }
+        public Dictionary<string, object> Parameters { get; set; }
 
         #endregion Properties
 
@@ -47,8 +50,8 @@ namespace Stj.Security.Policy
                     if (provider is AzManRoleProvider)
                     {
                         var azman = (AzManRoleProvider)provider;
-                        var operations = azman.GetOperationsForUser(identity.Name);
-                        var tasks = azman.GetTasksForUser(identity.Name);
+                        var operations = azman.GetOperationsForUser(identity.Name, Parameters);
+                        var tasks = azman.GetTasksForUser(identity.Name, Parameters);
 
                         evaluationContext.Properties["Principal"] = new AzManPrincipal(identity, roles, operations, tasks);
                     }
@@ -68,6 +71,27 @@ namespace Stj.Security.Policy
             return success;
         }
 
+        public static List<IAuthorizationPolicy> PoliciesFactory() {
+            List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>();
+            AzManAuthorizationPolicy policy = new AzManAuthorizationPolicy();
+
+            /* Parameters */
+            var ipAddress = HttpContext.Current.Request.UserHostAddress;
+            policy.Parameters = new Dictionary<string, object>();
+            policy.Parameters["Ip"] = ipAddress;
+            policy.Parameters["IsPrivateIp"] = false;
+            policy.Parameters["IsLocalIp"] = HttpContext.Current.Request.IsLocal;
+            policy.Parameters["IsSecureConnection"] = HttpContext.Current.Request.IsSecureConnection;
+            try
+            {
+                String[] sparts = ipAddress.Split(new String[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+                policy.Parameters["IsPrivateIp"] = (int.Parse(sparts[0]) == 10 || (int.Parse(sparts[0]) == 192 && int.Parse(sparts[1]) == 168) || (int.Parse(sparts[0]) == 172 && (int.Parse(sparts[1]) >= 16 && int.Parse(sparts[1]) <= 31))).ToString().ToLower();
+            }
+            catch { }
+            policies.Add(policy);
+            return policies;
+        }
+
         #endregion Public
 
         #region Private
@@ -79,7 +103,7 @@ namespace Stj.Security.Policy
             return identity;
         }
 
-        #endregion Private
+        #endregion
 
         #endregion Methods
 

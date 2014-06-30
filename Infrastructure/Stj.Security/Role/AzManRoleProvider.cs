@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Web.Security;
 using AZROLESLib;
+using System.Reflection;
 
 #endregion Using
 
@@ -298,7 +299,7 @@ namespace Stj.Security
                     var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
-                        var roles = (object[])context.GetRoles("");
+                        var roles = (object[])context.GetRoles(this.ScopeName);
                         list = (from string role in roles select role).ToArray();
                     }
                 }
@@ -494,18 +495,19 @@ namespace Stj.Security
         /// <exception cref="ArgumentNullException">If the specified User Name is null.</exception>
         /// <exception cref="ProviderException">If the specified User Name does not exist for the configured Application Name.</exception>
         /// <exception cref="AzManProviderException">If another exception occurs.</exception>
-        public string[] GetOperationsForUser(string userName)
+        public string[] GetOperationsForUser(string userName, Dictionary<string, object> parameters = null)
         {
             CheckParameter(ref userName, true, false, true, 0, "userName");
             if (userName.Length < 1)
             {
                 return new string[0];
             }
-            return GetOperationsForUserCore(userName);
+            return GetOperationsForUserCore(userName, parameters);
         }
 
-        private string[] GetOperationsForUserCore(string userName)
+        private string[] GetOperationsForUserCore(string userName, Dictionary<string, object> parameters)
         {
+            //TODO: Algo mejor para los parameters
             var operations = new List<string>();
             string[] scopes = new string[] { this.ScopeName };
 
@@ -516,17 +518,25 @@ namespace Stj.Security
                     var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
-                        object[] internalScopes = null;
-                        if (scopes != null)
+                        /* Internal Scope */
+                        object[] internalScopes = new object[1];
+                        internalScopes[0] = (object)scopes[0];
+
+                        /* Internal interfaces */
+                        object[] parameterNames = null;
+                        object[] parameterValues = null;
+                        if (parameters != null)
                         {
-                            internalScopes = new object[1];
-                            internalScopes[0] = scopes[0];
+                            parameterNames = parameters.Keys.OrderBy( k => k).ToArray<object>();
+                            parameterValues = new object[parameterNames.Length];
+                            for (var i = 0; i < parameterNames.Length; i++)
+                                parameterValues[i] = parameters[parameterNames[i].ToString()];
                         }
 
                         object[] operationIds = (from IAzOperation operation in store.Application.Operations select operation.OperationID).Cast<object>().ToArray();
 
                         object[] results = (object[])context.AccessCheck("GetOperationsForUser:" + userName,
-                                                                   internalScopes, operationIds, null, null, null, null, null);
+                                                                   internalScopes, operationIds, parameterNames, parameterValues, null, null, null);
                         for (var i = 0; i < results.Length; i++)
                             if ((int)results[i] == 0)
                                 operations.Add(store.Application.Operations[i + 1].Name);
@@ -541,17 +551,17 @@ namespace Stj.Security
             return operations.ToArray();
         }
 
-        public string[] GetTasksForUser(string userName)
+        public string[] GetTasksForUser(string userName, Dictionary<string, object> parameters = null)
         {
             CheckParameter(ref userName, true, false, true, 0, "userName");
             if (userName.Length < 1)
             {
                 return new string[0];
             }
-            return GetTasksForUserCore(userName);
+            return GetTasksForUserCore(userName, parameters);
         }
 
-        private string[] GetTasksForUserCore(string userName)
+        private string[] GetTasksForUserCore(string userName, Dictionary<string, object> parameters)
         {
             var tasks = new List<string>();
             string[] scopes = new string[] { this.ScopeName };
@@ -563,20 +573,28 @@ namespace Stj.Security
                     var context = GetClientContext2(store, userName);
                     if (context != null)
                     {
-                        object[] internalScopes = null;
-                        if (scopes != null)
-                        {
-                            internalScopes = new object[1];
-                            internalScopes[0] = scopes[0];
-                        }
+                        /* Internal Scope */
+                        object[] internalScopes = new object[1];
+                        internalScopes[0] = scopes[0];
 
+                        /* Internal interfaces */
+                        object[] parameterNames = null;
+                        object[] parameterValues = null;
+                        if (parameters != null)
+                        {
+                            parameterNames = parameters.Keys.OrderBy(k => k).ToArray<object>();
+                            parameterValues = new object[parameterNames.Length];
+                            for (var i = 0; i < parameterNames.Length; i++)
+                                parameterValues[i] = parameters[parameterNames[i].ToString()];
+                        }
+                        
                         foreach (IAzTask task in store.Application.Tasks)
                         {
                             object[] operationIds = GetTaskOperations(store, new string[] { task.Name });
                             if (operationIds.Length != 0)
                             {
                                 object[] results = (object[])context.AccessCheck("GetTasksForUser:" + userName,
-                                                                   internalScopes, operationIds, null, null, null, null, null);
+                                                                   internalScopes, operationIds, parameterNames, parameterValues, null, null, null);
                                 if ((from int result in results select result).All(r => r == 0))
                                     tasks.Add(task.Name);
                             }

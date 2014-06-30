@@ -64,11 +64,43 @@ namespace Stj.Security
         }
 
         #endregion
+
+        #region Update user
+        public static void UpdateUser(DirectoryMembershipUser user)
+        {
+            System.Web.Security.Membership.UpdateUser(user);
+            user.Save();
+        }
+
+        #endregion
         public static MembershipUser CreateUser(string username, string password)
         {
             return System.Web.Security.Membership.CreateUser(username, password);
         }
-        
+
+        public static MembershipUser CreateUser(string username, string password, string email)
+        {
+            return System.Web.Security.Membership.CreateUser(username, password, email);
+        }
+
+        public static bool ChangePassword(string username, string password)
+        {
+            foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
+            {
+                var dp = provider as DirectoryMembershipProvider;
+                if (dp != null)
+                    return dp.ChangePassword(username, dp.ResetPassword(username, ""), password);
+            }
+            return false;
+        }
+
+        public static bool ValidateUser(string username, string password) {
+            foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
+                if (provider.ValidateUser(username, password))
+                    return true;
+            return false;
+        }
+
         public static AzManPrincipal ConvertToAzManPrincipal(DirectoryMembershipUser user)
         {
             IIdentity identity = new GenericIdentity(user.UserName);
@@ -80,5 +112,16 @@ namespace Stj.Security
         {
             return new SecurityIdentifier(sid);
         }
+
+        public static void AddUserToApplicationRole(MembershipUser user, string name)
+        {
+            foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
+            {
+                var dp = provider as DirectoryMembershipProvider;
+                if (dp != null)
+                    dp.AddUserToRole(user, name);
+            }
+        }
+
     }
 }

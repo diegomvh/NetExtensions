@@ -57,9 +57,8 @@
     <Compile Include="ApplicationServices\DataContractDefinition.cs" />
     <Compile Include="Configuration\Settings.cs" />
     <Compile Include="Management\WebServiceErrorEvent.cs" />
-    <Compile Include="Membership\DirectoryMembershipProvider.cs" />
     <Compile Include="Membership\DirectoryMembershipUser.cs" />
-    <Compile Include="Membership\LdapMembershipProvider.cs" />
+    <Compile Include="Membership\DirectoryMembershipProvider.cs" />
     <Compile Include="Membership\MembershipHelper.cs" />
     <Compile Include="PasswordHash.cs" />
     <Compile Include="Permissions\AzManPrincipalPermission.cs" />
@@ -77,13 +76,8 @@
     <Compile Include="Role\AzManProviderException.cs" />
     <Compile Include="Role\AzManRoleProvider.cs" />
     <Compile Include="Role\AzManStore.cs" />
-    <Compile Include="Role\LdapRoleProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Novell.Directory.LDAP\Novell.Directory.LDAP.csproj">
-      <Project>{59EF64B6-62E4-46F1-8702-F86F27F411C0}</Project>
-      <Name>Novell.Directory.LDAP</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Stj.DirectoryServices\Stj.DirectoryServices.csproj">
       <Project>{799B6B9B-1193-486E-B216-FAB7C031FB76}</Project>
       <Name>Stj.DirectoryServices</Name>

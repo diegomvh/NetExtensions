@@ -21,13 +21,15 @@
         string _username;
         string _password;
 
-        private PrincipalContext principalcontext = null;
+        private PrincipalContext RootContext { get; set;}
+        private PrincipalContext RolesContext { get; set;}
 
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
 
-            string temp = config["connectionStringName"];
-            string adConnectionString = ConfigurationManager.ConnectionStrings[temp].ConnectionString;
+            string connectionUsersStringName = config["connectionStringName"];
+            var connectionRolesStringName = connectionUsersStringName.Replace("Users", "Roles");
+            string adConnectionString = ConfigurationManager.ConnectionStrings[connectionUsersStringName].ConnectionString;
 
             try
             {
@@ -62,13 +64,33 @@
             catch { }
 
             string[] server_container = adConnectionString.Split('/');
-            this.principalcontext = new PrincipalContext(
+            
+            var server = server_container[2];
+            var container = server_container[3];
+            
+            this.RootContext = new PrincipalContext(
                 (_dirType == DirectoryType.AD) ? ContextType.Domain : ContextType.ApplicationDirectory,
-                server_container[2],
-                server_container[3],
+                server,
+                container,
                 System.DirectoryServices.AccountManagement.ContextOptions.SimpleBind,
                 _username,
                 _password);
+
+            if (ConfigurationManager.ConnectionStrings[connectionRolesStringName] != null)
+            {
+                server_container = ConfigurationManager.ConnectionStrings[connectionRolesStringName].ConnectionString.Split('/');
+            
+                server = server_container[2];
+                container = server_container[3];
+                
+                this.RolesContext = new PrincipalContext(
+                    (_dirType == DirectoryType.AD) ? ContextType.Domain : ContextType.ApplicationDirectory,
+                    server,
+                    container,
+                    System.DirectoryServices.AccountManagement.ContextOptions.SimpleBind,
+                    _username,
+                    _password);
+            }
 
             base.Initialize(name, config);
             this.initialized = true;
@@ -77,7 +99,7 @@
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
             ActiveDirectoryMembershipUser admuser = base.CreateUser(username, password, email, passwordQuestion, passwordAnswer, isApproved, providerUserKey, out status) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.principalcontext, IdentityType.Name, username);
+            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Name, username);
             if (admuser != null)
                 return new DirectoryMembershipUser(admuser, dsuser);
             return admuser;
@@ -86,7 +108,7 @@
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
             ActiveDirectoryMembershipUser admuser = base.GetUser(username, userIsOnline) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.principalcontext, IdentityType.Name, username);
+            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Name, username);
             if (admuser != null)
                 return new DirectoryMembershipUser(admuser, dsuser);
             return admuser;
@@ -95,10 +117,24 @@
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
             ActiveDirectoryMembershipUser admuser = base.GetUser(providerUserKey, userIsOnline) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.principalcontext, IdentityType.Sid, providerUserKey.ToString());
+            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Sid, providerUserKey.ToString());
             if (admuser != null)
                 return new DirectoryMembershipUser(admuser, dsuser);
             return admuser;
+        }
+
+        public void AddUserToRole(MembershipUser user, string name)
+        {
+            GroupPrincipal grp = GroupPrincipal.FindByIdentity(this.RolesContext,
+                                                   IdentityType.Name,
+                                                   name);
+
+            if (grp != null)
+            {
+                grp.Members.Add(this.RootContext, IdentityType.Name, user.UserName);
+                grp.Save();
+                grp.Dispose();
+            }
         }
     }
 }
