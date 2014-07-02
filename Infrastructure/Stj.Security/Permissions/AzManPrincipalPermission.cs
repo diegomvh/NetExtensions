@@ -25,18 +25,19 @@ namespace Stj.Security.Permissions
 
         public bool IsAuthenticated { get; private set; }
         public string[] RequiredOperations { get; private set; }
+        public string[] RequiredTasks { get; private set; }
 
         #endregion Properties
 
         #region Constructors
 
-        internal AzManPrincipalPermission(bool isAuthenticated, string[] requiredOperations)
-        {
+        internal AzManPrincipalPermission(bool isAuthenticated, string[] requiredOperations, string[] requiredTasks) {
             IsAuthenticated = isAuthenticated;
             RequiredOperations = requiredOperations;
+            RequiredTasks = requiredTasks;
         }
 
-        public AzManPrincipalPermission(string requiredOperation) : this(true, new string[] { requiredOperation }) { }
+        public AzManPrincipalPermission(string requiredOperation, string requiredTask) : this(true, new string[] { requiredOperation }, new string[] { requiredTask }) { }
 
         public AzManPrincipalPermission(PermissionState state)
         {
@@ -58,7 +59,7 @@ namespace Stj.Security.Permissions
 
                 if (principal is AzManPrincipal)
                 {
-                    CheckOperations((AzManPrincipal)principal);
+                    CheckOperationsOrTasks((AzManPrincipal)principal);
                 }
             }
             else
@@ -75,11 +76,11 @@ namespace Stj.Security.Permissions
             }
         }
 
-        private void CheckOperations(AzManPrincipal principal)
+        private void CheckOperationsOrTasks(AzManPrincipal principal)
         {
             if (RequiredOperations == null)  return;
 
-            if (principal.HasRequiredOperations(RequiredOperations) == false)
+            if (!(principal.HasRequiredOperations(RequiredOperations) || principal.HasRequiredTasks(RequiredTasks)))
             {
                 throw new SecurityException(Resources.MessagePermissionAccessDeniedUserCannotAccess);
             }
@@ -93,7 +94,7 @@ namespace Stj.Security.Permissions
             }
             else
             {
-                return new AzManPrincipalPermission(IsAuthenticated, RequiredOperations);
+                return new AzManPrincipalPermission(IsAuthenticated, RequiredOperations, RequiredTasks);
             }
         }
 
@@ -109,6 +110,7 @@ namespace Stj.Security.Permissions
             // TODO: validate/test Intersect()
             //var operations = RequiredOperations.Where(operation => permission.RequiredOperations.Contains(operation)).ToArray();
             var operations = RequiredOperations.Intersect(permission.RequiredOperations).ToArray();
+            var tasks = RequiredTasks.Intersect(permission.RequiredTasks).ToArray();
 
             //foreach (var operation in RequiredOperations)
             //{
@@ -118,7 +120,7 @@ namespace Stj.Security.Permissions
             //    }
             //}
 
-            return new AzManPrincipalPermission(IsAuthenticated, operations.ToArray());
+            return new AzManPrincipalPermission(IsAuthenticated, operations.ToArray(), tasks.ToArray());
         }
 
         public bool IsSubsetOf(IPermission target)
@@ -152,6 +154,7 @@ namespace Stj.Security.Permissions
             if (IsAuthenticated != permission.IsAuthenticated) return null;
 
             var operations = RequiredOperations.Union(permission.RequiredOperations).ToArray();
+            var tasks = RequiredTasks.Union(permission.RequiredTasks).ToArray();
 
             // TODO: validate/test Union()
             //List<Claim> claims = new List<Claim>();
@@ -166,7 +169,7 @@ namespace Stj.Security.Permissions
             //    }
             //}
 
-            return new AzManPrincipalPermission(IsAuthenticated, operations);
+            return new AzManPrincipalPermission(IsAuthenticated, operations, tasks);
         }
 
         #endregion IPermission

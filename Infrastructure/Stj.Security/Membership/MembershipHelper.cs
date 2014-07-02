@@ -83,6 +83,11 @@ namespace Stj.Security
             return System.Web.Security.Membership.CreateUser(username, password, email);
         }
 
+        public static bool DeleteUser(string username)
+        {
+            return System.Web.Security.Membership.DeleteUser(username);
+        }
+
         public static bool ChangePassword(string username, string password)
         {
             foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)

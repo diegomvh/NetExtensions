@@ -1,14 +1,13 @@
 ﻿namespace Stj.Security
 {
     using System;
-    using System.Web.Security;
-    using System.Security.Principal;
+    using System.Configuration;
     using System.DirectoryServices;
     using System.DirectoryServices.AccountManagement;
-    using System.Configuration;
-    using System.Configuration.Provider;
+    using System.Web.Security;
     using Stj.DirectoryServices;
-
+    using Stj.Security.Identity;
+    
     public class DirectoryMembershipProvider : ActiveDirectoryMembershipProvider
     {
         private bool initialized = false;
@@ -35,7 +34,8 @@
             {
                 _server = LdapUtils.GetServerFromAdsPath(adConnectionString);
             }
-            catch {
+            catch
+            {
                 _server = adConnectionString.Split('/')[2];
             }
             if (String.IsNullOrEmpty(_server))
@@ -64,10 +64,10 @@
             catch { }
 
             string[] server_container = adConnectionString.Split('/');
-            
+
             var server = server_container[2];
             var container = server_container[3];
-            
+
             this.RootContext = new PrincipalContext(
                 (_dirType == DirectoryType.AD) ? ContextType.Domain : ContextType.ApplicationDirectory,
                 server,
@@ -79,10 +79,10 @@
             if (ConfigurationManager.ConnectionStrings[connectionRolesStringName] != null)
             {
                 server_container = ConfigurationManager.ConnectionStrings[connectionRolesStringName].ConnectionString.Split('/');
-            
+
                 server = server_container[2];
                 container = server_container[3];
-                
+
                 this.RolesContext = new PrincipalContext(
                     (_dirType == DirectoryType.AD) ? ContextType.Domain : ContextType.ApplicationDirectory,
                     server,
@@ -99,41 +99,86 @@
         public override MembershipUser CreateUser(string username, string password, string email, string passwordQuestion, string passwordAnswer, bool isApproved, object providerUserKey, out MembershipCreateStatus status)
         {
             ActiveDirectoryMembershipUser admuser = base.CreateUser(username, password, email, passwordQuestion, passwordAnswer, isApproved, providerUserKey, out status) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Name, username);
             if (admuser != null)
-                return new DirectoryMembershipUser(admuser, dsuser);
+            {
+                DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Sid, admuser.ProviderUserKey.ToString());
+                if (dsuser != null)
+                    return new DirectoryMembershipUser(admuser, dsuser);
+            }
             return admuser;
         }
 
         public override MembershipUser GetUser(string username, bool userIsOnline)
         {
             ActiveDirectoryMembershipUser admuser = base.GetUser(username, userIsOnline) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Name, username);
             if (admuser != null)
-                return new DirectoryMembershipUser(admuser, dsuser);
+            {
+                DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Sid, admuser.ProviderUserKey.ToString());
+                if (dsuser != null)
+                    return new DirectoryMembershipUser(admuser, dsuser);
+            }
             return admuser;
         }
 
         public override MembershipUser GetUser(object providerUserKey, bool userIsOnline)
         {
             ActiveDirectoryMembershipUser admuser = base.GetUser(providerUserKey, userIsOnline) as ActiveDirectoryMembershipUser;
-            DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Sid, providerUserKey.ToString());
             if (admuser != null)
-                return new DirectoryMembershipUser(admuser, dsuser);
+            {
+                DirectoryUserPrincipal dsuser = DirectoryUserPrincipal.FindByIdentity(this.RootContext, IdentityType.Sid, providerUserKey.ToString());
+                if (dsuser != null)
+                    return new DirectoryMembershipUser(admuser, dsuser);
+            }
             return admuser;
         }
 
         public void AddUserToRole(MembershipUser user, string name)
         {
             GroupPrincipal grp = GroupPrincipal.FindByIdentity(this.RolesContext,
-                                                   IdentityType.Name,
-                                                   name);
+                                                    IdentityType.Name,
+                                                    name);
 
             if (grp != null)
             {
                 grp.Members.Add(this.RootContext, IdentityType.Name, user.UserName);
                 grp.Save();
                 grp.Dispose();
+            }
+        }
+
+        public string GetErrorMessage(MembershipCreateStatus status)
+        {
+            switch (status)
+            {
+                case MembershipCreateStatus.DuplicateUserName:
+                    return "Username already exists. Please enter a different user name.";
+
+                case MembershipCreateStatus.DuplicateEmail:
+                    return "A username for that e-mail address already exists. Please enter a different e-mail address.";
+
+                case MembershipCreateStatus.InvalidPassword:
+                    return "The password provided is invalid. Please enter a valid password value.";
+
+                case MembershipCreateStatus.InvalidEmail:
+                    return "The e-mail address provided is invalid. Please check the value and try again.";
+
+                case MembershipCreateStatus.InvalidAnswer:
+                    return "The password retrieval answer provided is invalid. Please check the value and try again.";
+
+                case MembershipCreateStatus.InvalidQuestion:
+                    return "The password retrieval question provided is invalid. Please check the value and try again.";
+
+                case MembershipCreateStatus.InvalidUserName:
+                    return "The user name provided is invalid. Please check the value and try again.";
+
+                case MembershipCreateStatus.ProviderError:
+                    return "The authentication provider returned an error. Please verify your entry and try again. If the problem persists, please contact your system administrator.";
+
+                case MembershipCreateStatus.UserRejected:
+                    return "The user creation request has been canceled. Please verify your entry and try again. If the problem persists, please contact your system administrator.";
+
+                default:
+                    return "An unknown error occurred. Please verify your entry and try again. If the problem persists, please contact your system administrator.";
             }
         }
     }

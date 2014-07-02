@@ -56,11 +56,15 @@
     <Compile Include="ApplicationServices\AuthorizationService.cs" />
     <Compile Include="ApplicationServices\DataContractDefinition.cs" />
     <Compile Include="Configuration\Settings.cs" />
+    <Compile Include="Identity\Impersonation.cs" />
+    <Compile Include="Identity\LogonType.cs" />
+    <Compile Include="Identity\NativeMethods.cs" />
+    <Compile Include="Identity\SafeTokenHandle.cs" />
     <Compile Include="Management\WebServiceErrorEvent.cs" />
     <Compile Include="Membership\DirectoryMembershipUser.cs" />
     <Compile Include="Membership\DirectoryMembershipProvider.cs" />
     <Compile Include="Membership\MembershipHelper.cs" />
-    <Compile Include="PasswordHash.cs" />
+    <Compile Include="Infrastructure\PasswordHash.cs" />
     <Compile Include="Permissions\AzManPrincipalPermission.cs" />
     <Compile Include="Permissions\AzManPrincipalPermissionAttribute.cs" />
     <Compile Include="Policy\AzManAuthorizationPolicy.cs" />

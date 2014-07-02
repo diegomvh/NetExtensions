@@ -162,21 +162,6 @@
             return s.ToString();
         }
 
-        public void AddToGroup(string name)
-        {
-            
-
-            GroupPrincipal grp = GroupPrincipal.FindByIdentity(this.Context,
-                                                   IdentityType.Name,
-                                                   name);
-            if (grp != null)
-            {
-                grp.Members.Add(this.Context, IdentityType.Name, this.Name);
-                grp.Save();
-                grp.Dispose();
-            }
-        }
-
         #region Estaticos
         // Implement the overloaded search method FindByIdentity.
         public static new DirectoryUserPrincipal FindByIdentity(PrincipalContext context, string identityValue)

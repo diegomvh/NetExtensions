@@ -40,7 +40,7 @@ namespace Stj.Security.Permissions
             {
                 return new AzManPrincipalPermission(PermissionState.Unrestricted);
             }
-            return new AzManPrincipalPermission(IsAuthenticated, new string[] { Operation });
+            return new AzManPrincipalPermission(IsAuthenticated, new string[] { Operation }, new string[] { Task });
         }
 
         #endregion Public

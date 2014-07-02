@@ -49,7 +49,7 @@ namespace Stj.DirectoryServices
             //could possible parse servername for port info too
         }
 
-        static internal string BuildFilterOctetString(byte[] bytes)
+        public static string BuildFilterOctetString(byte[] bytes)
         {
             StringBuilder sb = new StringBuilder();
             foreach (byte b in bytes)
@@ -59,7 +59,7 @@ namespace Stj.DirectoryServices
             return sb.ToString();
         }
 
-        static internal string GetDefaultADAMPartition(string adsPath, DirectoryEntry rootDSE)
+        public static string GetDefaultADAMPartition(string adsPath, DirectoryEntry rootDSE)
         {
             if (rootDSE.Properties.Contains("defaultNamingContext"))
                 return (string)rootDSE.Properties["defaultNamingContext"].Value;
