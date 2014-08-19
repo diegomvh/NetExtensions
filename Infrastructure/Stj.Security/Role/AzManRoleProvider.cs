@@ -26,6 +26,9 @@ namespace Stj.Security
 
         #region Properties
 
+        public string ConnectionUsername { get; private set; }
+        public string ConnectionPassword { get; private set; }
+        public string ConnectionDomain { get; private set; }
         public override string ApplicationName { get; set; }
         public string StoreLocation { get; private set; }
         public string AuditIdentifierPrefix { get; private set; }
@@ -70,6 +73,10 @@ namespace Stj.Security
                 throw new AzManProviderException(Resources.MessageAzManApplicationNameNotSpecified);
             }
 
+            ConnectionUsername = config["connectionUsername"];
+            ConnectionPassword = config["connectionPassword"];
+            ConnectionDomain = config["connectionDomain"];
+            
             // we need the connectionString and it must have a server
             if (String.IsNullOrEmpty(config["connectionStringName"]))
                 throw new ProviderException("connectionStringName must be configured");
@@ -112,7 +119,7 @@ namespace Stj.Security
                 roles[i++] = role;
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -161,7 +168,7 @@ namespace Stj.Security
         {
             CheckParameter(ref roleName, true, true, true, 0, "roleName");
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 if (RoleExists(roleName))
                 {
@@ -220,7 +227,7 @@ namespace Stj.Security
                 }
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -253,7 +260,7 @@ namespace Stj.Security
         {
             var list = new string[0];
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -292,7 +299,7 @@ namespace Stj.Security
         {
             var list = new string[0];
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -414,7 +421,7 @@ namespace Stj.Security
                 roles[i++] = role;
             }
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -511,7 +518,7 @@ namespace Stj.Security
             var operations = new List<string>();
             string[] scopes = new string[] { this.ScopeName };
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain ))
             {
                 try
                 {
@@ -527,6 +534,8 @@ namespace Stj.Security
                         object[] parameterValues = null;
                         if (parameters != null)
                         {
+                            //Update cache for new parameters
+                            store.Store.UpdateCache();
                             parameterNames = parameters.Keys.OrderBy( k => k).ToArray<object>();
                             parameterValues = new object[parameterNames.Length];
                             for (var i = 0; i < parameterNames.Length; i++)
@@ -566,7 +575,7 @@ namespace Stj.Security
             var tasks = new List<string>();
             string[] scopes = new string[] { this.ScopeName };
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -582,6 +591,8 @@ namespace Stj.Security
                         object[] parameterValues = null;
                         if (parameters != null)
                         {
+                            //Update cache for new parameters
+                            store.Store.UpdateCache();
                             parameterNames = parameters.Keys.OrderBy(k => k).ToArray<object>();
                             parameterValues = new object[parameterNames.Length];
                             for (var i = 0; i < parameterNames.Length; i++)
@@ -696,7 +707,7 @@ namespace Stj.Security
         {
             string[] scopes = new string[] { this.ScopeName };
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -770,7 +781,7 @@ namespace Stj.Security
         {
             string[] scopes = new string[] { this.ScopeName };
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {
@@ -916,7 +927,7 @@ namespace Stj.Security
         {
             IAzRole role = null;
 
-            using (var store = new AzManStore(ApplicationName, StoreLocation))
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
                 try
                 {

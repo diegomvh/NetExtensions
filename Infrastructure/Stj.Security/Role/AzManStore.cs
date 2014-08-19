@@ -3,6 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 using AZROLESLib;
+using Stj.Security.Identity;
 
 #endregion Using
 
@@ -10,11 +11,23 @@ namespace Stj.Security
 {
     internal class AzManStore : IDisposable
     {
+        //TODO: Rename to AzManContext
         public AzAuthorizationStore Store { get; private set; }
         public IAzApplication Application { get; private set; }
+        public Impersonation Impersonation { get; private set; }
 
-        public AzManStore(string applicationName, string connectionString)
+        public AzManStore(string applicationName, string connectionString, string connectionUsername = null, string connectionPassword = null, string connectionDomain = null)
         {
+            if (connectionUsername != null)
+            {
+                try
+                {
+                    Impersonation = Impersonation.LogonUser(connectionDomain, connectionUsername, connectionPassword, LogonType.Interactive);
+                }
+                catch
+                {
+                }
+            }
             if (string.IsNullOrEmpty(applicationName)) throw new AzManProviderException(Resources.MessageAzManApplicationNameNotSpecified);
 
             try
@@ -35,7 +48,9 @@ namespace Stj.Security
 
         public void Dispose()
         {
+            if (this.Impersonation != null) Impersonation.Dispose();
             if (this.Application == null) return;
+            
 
             Marshal.FinalReleaseComObject(Application);
             Marshal.FinalReleaseComObject(Store);
