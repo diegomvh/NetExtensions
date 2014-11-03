@@ -42,29 +42,7 @@ namespace Stj.Security.Policy
             var identity = GetClientIdentity(evaluationContext);
             if (identity != null)
             {
-                if (Roles.Enabled)
-                {
-                    var provider = Roles.Provider;
-                    var roles = provider.GetRolesForUser(identity.Name);
-
-                    if (provider is AzManRoleProvider)
-                    {
-                        var azman = (AzManRoleProvider)provider;
-                        var operations = azman.GetOperationsForUser(identity.Name, Parameters);
-                        var tasks = azman.GetTasksForUser(identity.Name, Parameters);
-
-                        evaluationContext.Properties["Principal"] = new AzManPrincipal(identity, roles, operations, tasks);
-                    }
-                    else
-                    {
-                        evaluationContext.Properties["Principal"] = new GenericPrincipal(identity, roles);
-                    }
-                }
-                else
-                {
-                    evaluationContext.Properties["Principal"] = new GenericPrincipal(identity, null);
-                }
-
+                evaluationContext.Properties["Principal"] = MembershipHelper.ToPrincipal(identity, Parameters);
                 success = true;
             }
 
@@ -75,21 +53,26 @@ namespace Stj.Security.Policy
             List<IAuthorizationPolicy> policies = new List<IAuthorizationPolicy>();
             AzManAuthorizationPolicy policy = new AzManAuthorizationPolicy();
 
+            policy.Parameters = AzManAuthorizationPolicy.ParametersFactory();
+            policies.Add(policy);
+            return policies;
+        }
+
+        public static Dictionary<string, object> ParametersFactory() {
             /* Parameters */
             var ipAddress = HttpContext.Current.Request.UserHostAddress;
-            policy.Parameters = new Dictionary<string, object>();
-            policy.Parameters["Ip"] = ipAddress;
-            policy.Parameters["IsPrivateIp"] = false;
-            policy.Parameters["IsLocalIp"] = HttpContext.Current.Request.IsLocal;
-            policy.Parameters["IsSecureConnection"] = HttpContext.Current.Request.IsSecureConnection;
+            Dictionary<string, object>  parameters = new Dictionary<string, object>();
+            parameters["Ip"] = ipAddress;
+            parameters["IsPrivateIp"] = false;
+            parameters["IsLocalIp"] = HttpContext.Current.Request.IsLocal;
+            parameters["IsSecureConnection"] = HttpContext.Current.Request.IsSecureConnection;
             try
             {
                 String[] sparts = ipAddress.Split(new String[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-                policy.Parameters["IsPrivateIp"] = (int.Parse(sparts[0]) == 10 || (int.Parse(sparts[0]) == 192 && int.Parse(sparts[1]) == 168) || (int.Parse(sparts[0]) == 172 && (int.Parse(sparts[1]) >= 16 && int.Parse(sparts[1]) <= 31))).ToString().ToLower();
+                parameters["IsPrivateIp"] = (int.Parse(sparts[0]) == 10 || (int.Parse(sparts[0]) == 192 && int.Parse(sparts[1]) == 168) || (int.Parse(sparts[0]) == 172 && (int.Parse(sparts[1]) >= 16 && int.Parse(sparts[1]) <= 31)));
             }
             catch { }
-            policies.Add(policy);
-            return policies;
+            return parameters;
         }
 
         #endregion Public

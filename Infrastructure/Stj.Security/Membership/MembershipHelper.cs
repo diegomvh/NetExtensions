@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Web.Security;
 using System.Security.Principal;
 using Stj.Security.Principal;
+using Stj.Security.Policy;
 
 namespace Stj.Security
 {
@@ -88,13 +89,13 @@ namespace Stj.Security
             return System.Web.Security.Membership.DeleteUser(username);
         }
 
-        public static bool ChangePassword(string username, string password)
+        public static bool ChangePassword(string username, string oldPassword, string newPassword)
         {
             foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
             {
                 var dp = provider as DirectoryMembershipProvider;
                 if (dp != null)
-                    return dp.ChangePassword(username, dp.ResetPassword(username, ""), password);
+                    return dp.ChangePassword(username, oldPassword, newPassword);
             }
             return false;
         }
@@ -106,11 +107,34 @@ namespace Stj.Security
             return false;
         }
 
-        public static AzManPrincipal ConvertToAzManPrincipal(DirectoryMembershipUser user)
+        public static IPrincipal ToPrincipal(IIdentity identity, Dictionary<string, object> parameters = null)
+        {
+            if (Roles.Enabled)
+            {
+                var provider = Roles.Provider;
+                if (provider is AzManRoleProvider)
+                {
+                    var azman = (AzManRoleProvider)provider;
+                    var roles = provider.GetRolesForUser(identity.Name);
+                    var operations = azman.GetOperationsForUser(identity.Name, parameters);
+                    var tasks = azman.GetTasksForUser(identity.Name, parameters);
+
+                    return new AzManPrincipal(identity, roles, operations, tasks);
+                }
+                else
+                {
+                    var roles = provider.GetRolesForUser(identity.Name);
+                    return new GenericPrincipal(identity, roles);
+                }
+            }
+            return new GenericPrincipal(identity, null);
+        }
+
+        public static IPrincipal ToPrincipal(MembershipUser user)
         {
             IIdentity identity = new GenericIdentity(user.UserName);
-            AzManPrincipal principal = new AzManPrincipal(identity);
-            return principal;
+            var parameters = (identity.IsAuthenticated) ? AzManAuthorizationPolicy.ParametersFactory() : null;
+            return MembershipHelper.ToPrincipal(identity, parameters);
         }
 
         public static SecurityIdentifier CreateSecurityIdentifier(string sid)

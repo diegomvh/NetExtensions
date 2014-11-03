@@ -530,8 +530,8 @@ namespace Stj.Security
                         internalScopes[0] = (object)scopes[0];
 
                         /* Internal interfaces */
-                        object[] parameterNames = null;
-                        object[] parameterValues = null;
+                        object[] parameterNames = new object[0];
+                        object[] parameterValues = new object[0];
                         if (parameters != null)
                         {
                             //Update cache for new parameters
@@ -587,8 +587,8 @@ namespace Stj.Security
                         internalScopes[0] = scopes[0];
 
                         /* Internal interfaces */
-                        object[] parameterNames = null;
-                        object[] parameterValues = null;
+                        object[] parameterNames = new object[0];
+                        object[] parameterValues = new object[0];
                         if (parameters != null)
                         {
                             //Update cache for new parameters

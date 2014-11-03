@@ -44,7 +44,6 @@ namespace Stj.Security.Infrastructure
         public const int SALT_BYTE_SIZE = 24;
         public const int HASH_BYTE_SIZE = 24;
         public const int PBKDF2_ITERATIONS = 1000;
-        public const int TOKEN_BYTE_SIZE = 20;
 
         public const int ITERATION_INDEX = 0;
         public const int SALT_INDEX = 1;
@@ -152,21 +151,6 @@ namespace Stj.Security.Infrastructure
             Rfc2898DeriveBytes pbkdf2 = new Rfc2898DeriveBytes(password, salt);
             pbkdf2.IterationCount = iterations;
             return pbkdf2.GetBytes(outputBytes);
-        }
-
-        /// <summary>
-        /// Creates a url token.
-        /// </summary>
-        /// <param name="password">The password to hash.</param>
-        /// <returns>The hash of the password.</returns>
-        public static string CreateToken()
-        {
-            // Generate a random salt
-            RNGCryptoServiceProvider csprng = new RNGCryptoServiceProvider();
-            byte[] token = new byte[TOKEN_BYTE_SIZE * 2];
-            csprng.GetBytes(token);
-
-            return Convert.ToBase64String(token).Substring(0, TOKEN_BYTE_SIZE).Replace('+', '-').Replace('/', '_');
         }
     }
 } 
