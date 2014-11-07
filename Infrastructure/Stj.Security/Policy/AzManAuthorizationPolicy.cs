@@ -6,14 +6,17 @@ using System.IdentityModel.Policy;
 using System.Security.Principal;
 using System.Web;
 using System.Web.Security;
-using Stj.Security.Principal;
 using System.Collections.Generic;
 using AZROLESLib;
+using System.Net;
 
 #endregion Using
 
 namespace Stj.Security.Policy
 {
+    using Stj.Security.Principal;
+    using Stj.Security.Extensions;
+
     public class AzManAuthorizationPolicy : IAuthorizationPolicy
     {
 
@@ -63,15 +66,9 @@ namespace Stj.Security.Policy
             var ipAddress = HttpContext.Current.Request.UserHostAddress;
             Dictionary<string, object>  parameters = new Dictionary<string, object>();
             parameters["Ip"] = ipAddress;
-            parameters["IsPrivateIp"] = false;
+            parameters["IsPrivateIp"] = IPAddress.Parse(ipAddress).IsOnIntranet();
             parameters["IsLocalIp"] = HttpContext.Current.Request.IsLocal;
             parameters["IsSecureConnection"] = HttpContext.Current.Request.IsSecureConnection;
-            try
-            {
-                String[] sparts = ipAddress.Split(new String[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-                parameters["IsPrivateIp"] = (int.Parse(sparts[0]) == 10 || (int.Parse(sparts[0]) == 192 && int.Parse(sparts[1]) == 168) || (int.Parse(sparts[0]) == 172 && (int.Parse(sparts[1]) >= 16 && int.Parse(sparts[1]) <= 31)));
-            }
-            catch { }
             return parameters;
         }
 
