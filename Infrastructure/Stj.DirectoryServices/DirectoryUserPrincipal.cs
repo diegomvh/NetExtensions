@@ -139,6 +139,9 @@
                 /* Probamos las normativas de stj :P */
                 if (ExtensionGet("wWWHomePage").Length > 0)
                     return (string)ExtensionGet("wWWHomePage")[0];
+                /* Probamos nuevas normativas de stj no teminan de ponerse de acuerdo :P */
+                if (ExtensionGet("telephoneNumber").Length > 0)
+                    return (string)ExtensionGet("telephoneNumber")[0];
                 return this.EmployeeId != null ? this.EmployeeId : string.Empty;
             }
             set
