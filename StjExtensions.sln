@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{EC0DA68F-E44F-49F6-9056-F5BD78DB337A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Third Parties", "Third Parties", "{8D96AD96-34ED-498D-BDC6-63A941DFE8BB}"
@@ -30,6 +30,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stj.DirectoryServices", "In
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Novell.Directory.LDAP", "Infrastructure\Novell.Directory.LDAP\Novell.Directory.LDAP.csproj", "{59EF64B6-62E4-46F1-8702-F86F27F411C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stj.Utilities", "Infrastructure\Stj.Utilities\Stj.Utilities.csproj", "{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = NetExtensions.vsmdi
@@ -55,6 +57,10 @@ Global
 		{59EF64B6-62E4-46F1-8702-F86F27F411C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59EF64B6-62E4-46F1-8702-F86F27F411C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59EF64B6-62E4-46F1-8702-F86F27F411C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +69,7 @@ Global
 		{D6D846AF-8FA8-4743-90B3-96A412C29132} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{799B6B9B-1193-486E-B216-FAB7C031FB76} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{59EF64B6-62E4-46F1-8702-F86F27F411C0} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
+		{2A93693D-C7DA-4462-8FDA-5320B7EBFB1E} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{A2FD7F80-62D9-4B19-B3E9-6BD274683B23} = {8D96AD96-34ED-498D-BDC6-63A941DFE8BB}
 		{58344635-B43D-493D-9BA3-FC0FAF83652E} = {4A160B09-F82C-40E2-90F5-93A191E59E0A}
 		{0357CDC5-AF39-4301-9A18-DFBAE3F34448} = {58344635-B43D-493D-9BA3-FC0FAF83652E}

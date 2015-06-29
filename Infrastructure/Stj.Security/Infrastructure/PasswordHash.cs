@@ -41,6 +41,7 @@ namespace Stj.Security.Infrastructure
     public class PasswordHash
     {
         // The following constants may be changed without breaking existing hashes.
+        public const int WEAK_PASSWORD_SIZE = 6;
         public const int SALT_BYTE_SIZE = 24;
         public const int HASH_BYTE_SIZE = 24;
         public const int PBKDF2_ITERATIONS = 1000;
@@ -68,6 +69,17 @@ namespace Stj.Security.Infrastructure
             return PBKDF2_ITERATIONS + ":" +
                 Convert.ToBase64String(salt) + ":" +
                 Convert.ToBase64String(hash);
+        }
+
+        public static string CreateWeakPassword(string prefix = "")
+        {
+            // Generate a random
+            RNGCryptoServiceProvider csprng = new RNGCryptoServiceProvider();
+            byte[] salt = new byte[SALT_BYTE_SIZE];
+            csprng.GetBytes(salt);
+
+            var weakPassword = Convert.ToBase64String(salt).Substring(0, WEAK_PASSWORD_SIZE);
+            return prefix + weakPassword;
         }
 
         public static string CreateHardPassword(string password, string prefix = "")

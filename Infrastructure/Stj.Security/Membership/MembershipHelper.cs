@@ -20,7 +20,7 @@ namespace Stj.Security
             {
                 try
                 {
-                    muser = provider.GetUser(identifier, false);
+                    muser = provider.GetUser(identifier, true);
                     if (muser != null)
                         return muser;
                 }
@@ -36,7 +36,7 @@ namespace Stj.Security
             {
                 try
                 {
-                    muser = provider.GetUser(username, false);
+                    muser = provider.GetUser(username, true);
                     if (muser != null)
                         return muser;
                 }
