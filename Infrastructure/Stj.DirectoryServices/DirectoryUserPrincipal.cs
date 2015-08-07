@@ -34,6 +34,7 @@
                 this.GivenName = value;
             }
         }
+
         public string Apellidos
         {
             get
@@ -45,6 +46,7 @@
                 this.Surname = value;
             }
         }
+
         public string Email
         {
             get
@@ -56,6 +58,7 @@
                 this.EmailAddress = value;
             }
         }
+
         public string AuthenticationServer
         {
             get
@@ -63,6 +66,7 @@
                 return this.Context.Name;
             }
         }
+
         private IEnumerable<string> _organizations = null;
         public IEnumerable<string> Organizations
         {
@@ -92,6 +96,7 @@
             }
             set { ExtensionSet("title", value); }
         }
+
         [DirectoryProperty("st")]
         public string Provincia
         {
@@ -104,6 +109,7 @@
             }
             set { ExtensionSet("st", value); }
         }
+
         [DirectoryProperty("l")]
         public string Localidad
         {
@@ -116,6 +122,7 @@
             }
             set { ExtensionSet("l", value); }
         }
+
         [DirectoryProperty("street")]
         public string Domicilio
         {
@@ -149,6 +156,19 @@
                 this.EmployeeId = value;
                 ExtensionSet("DNI", value);
             }
+        }
+
+        [DirectoryProperty("msDS-UserDontExpirePassword")]
+        public bool UserDontExpirePassword
+        {
+            get
+            {
+                if (ExtensionGet("msDS-UserDontExpirePassword").Length != 1)
+                    return false;
+
+                return (bool)ExtensionGet("msDS-UserDontExpirePassword")[0];
+            }
+            set { ExtensionSet("msDS-UserDontExpirePassword", value); }
         }
         #endregion
 

@@ -7,9 +7,39 @@
     using System.Web.Security;
     using Stj.DirectoryServices;
     using System.DirectoryServices;
+    using Stj.Security.Principal;
     
     public class DirectoryMembershipUser : MembershipUser
     {
+        [Flags]
+        public enum DirectoryMembershipUserFlags
+        {
+            // Reference - Chapter 10 (from The .NET Developer's Guide to Directory Services Programming)
+
+            Script = 1,                                     // 0x1
+            AccountDisabled = 2,                            // 0x2
+            HomeDirectoryRequired = 8,                      // 0x8
+            AccountLockedOut = 16,                          // 0x10
+            PasswordNotRequired = 32,                       // 0x20
+            PasswordCannotChange = 64,                      // 0x40
+            EncryptedTextPasswordAllowed = 128,             // 0x80
+            TempDuplicateAccount = 256,                     // 0x100
+            NormalAccount = 512,                            // 0x200
+            InterDomainTrustAccount = 2048,                 // 0x800
+            WorkstationTrustAccount = 4096,                 // 0x1000
+            ServerTrustAccount = 8192,                      // 0x2000
+            UserDontExpirePassword = 65536,                 // 0x10000 (Also 66048 )
+            MnsLogonAccount = 131072,                       // 0x20000
+            SmartCardRequired = 262144,                     // 0x40000
+            TrustedForDelegation = 524288,                  // 0x80000
+            AccountNotDelegated = 1048576,                  // 0x100000
+            UseDesKeyOnly = 2097152,                        // 0x200000
+            DontRequirePreauth = 4194304,                   // 0x400000
+            PasswordExpired = 8388608,                      // 0x800000 (Applicable only in Window 2000 and Window Server 2003)
+            TrustedToAuthenticateForDelegation = 16777216,  // 0x1000000
+            NoAuthDataRequired = 33554432                   // 0x2000000
+        }
+
         public override object ProviderUserKey { get { return this._admuser.ProviderUserKey; } }
         public string DistinguishedName { get { return this._dsuser.DistinguishedName; } }
         public string Nombres { get { return this._dsuser.Nombres; } set { this._dsuser.Nombres = value; } }
@@ -54,6 +84,59 @@
 
         public void Save() {
             this._dsuser.Save();
+        }
+
+        #region Cuenta del usuario, AzManPrincipal, permisos, roles
+        private IPrincipal _account;
+        public IPrincipal Account
+        {
+            get
+            {
+                if (this._account == null)
+                    this._account = MembershipHelper.ToPrincipal(this);
+                return this._account;
+            }
+            set
+            {
+                this._account = value;
+            }
+        }
+
+        public bool IsInRole(string role)
+        {
+            return (this.Account != null) && this.Account.IsInRole(role);
+        }
+
+        public bool HasRequiredOperation(string operation)
+        {
+            return (this.Account is AzManPrincipal) && ((AzManPrincipal)this.Account).HasRequiredOperations(new string[] { operation });
+        }
+
+        public string[] GetRoles()
+        {
+            return (this.Account is AzManPrincipal)? ((AzManPrincipal)this.Account).Roles : new string[0];
+        }
+
+        public string[] GetOperations()
+        {
+            return (this.Account is AzManPrincipal) ? ((AzManPrincipal)this.Account).Operations : new string[0];
+        }
+
+        public string[] GetTasks()
+        {
+            return (this.Account is AzManPrincipal) ? ((AzManPrincipal)this.Account).Tasks : new string[0];
+        }
+
+        #endregion
+
+        public bool UserDontExpirePassword
+        { 
+            get {
+                return this._dsuser.UserDontExpirePassword;
+            }
+            set {
+                this._dsuser.UserDontExpirePassword = value;
+            }
         }
 
         public void SetPassword(string password) {

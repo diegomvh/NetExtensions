@@ -18,13 +18,9 @@ namespace Stj.Security
             MembershipUser muser = null;
             foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
             {
-                try
-                {
-                    muser = provider.GetUser(identifier, true);
-                    if (muser != null)
-                        return muser;
-                }
-                catch { }
+                muser = provider.GetUser(identifier, true);
+                if (muser != null)
+                    return muser;
             }
             return null;
         }
