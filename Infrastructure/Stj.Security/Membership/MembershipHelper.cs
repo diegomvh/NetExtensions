@@ -117,10 +117,12 @@ namespace Stj.Security
                 {
                     var azman = (AzManRoleProvider)provider;
                     var roles = provider.GetRolesForUser(identity.Name);
+                    if (roles.Length == 0)
+                        return new AzManPrincipal(identity, roles);
                     var operations = azman.GetOperationsForUser(identity.Name, parameters);
                     var tasks = azman.GetTasksForUser(identity.Name, parameters);
-
                     return new AzManPrincipal(identity, roles, operations, tasks);
+
                 }
                 else
                 {

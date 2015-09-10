@@ -112,6 +112,11 @@
             return (this.Account is AzManPrincipal) && ((AzManPrincipal)this.Account).HasRequiredOperations(new string[] { operation });
         }
 
+        public bool HasRequiredTask(string task)
+        {
+            return (this.Account is AzManPrincipal) && ((AzManPrincipal)this.Account).HasRequiredTasks(new string[] { task });
+        }
+
         public string[] GetRoles()
         {
             return (this.Account is AzManPrincipal)? ((AzManPrincipal)this.Account).Roles : new string[0];

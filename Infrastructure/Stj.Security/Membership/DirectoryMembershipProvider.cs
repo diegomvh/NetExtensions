@@ -1,6 +1,7 @@
 ﻿namespace Stj.Security
 {
     using System;
+    using System.Linq;
     using System.Configuration;
     using System.DirectoryServices;
     using System.DirectoryServices.AccountManagement;
@@ -138,7 +139,7 @@
                                                     IdentityType.Name,
                                                     name);
 
-            if (grp != null)
+            if (grp != null && grp.Members.All(cp => cp.Name != user.UserName))
             {
                 grp.Members.Add(this.RootContext, IdentityType.Name, user.UserName);
                 grp.Save();
