@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Web.Security;
 using AZROLESLib;
 using System.Reflection;
+using System.Text;
 
 #endregion Using
 
@@ -30,6 +31,7 @@ namespace Stj.Security
         public string ConnectionPassword { get; private set; }
         public string ConnectionDomain { get; private set; }
         public override string ApplicationName { get; set; }
+        public int OperationOffset { get; set; }
         public string StoreLocation { get; private set; }
         public string AuditIdentifierPrefix { get; private set; }
         public string ScopeName { get; private set; }
@@ -73,6 +75,10 @@ namespace Stj.Security
                 throw new AzManProviderException(Resources.MessageAzManApplicationNameNotSpecified);
             }
 
+            var offset = 10000;
+            int.TryParse(config["operationOffset"], out offset);
+            OperationOffset = offset;
+            
             ConnectionUsername = config["connectionUsername"];
             ConnectionPassword = config["connectionPassword"];
             ConnectionDomain = config["connectionDomain"];
@@ -155,6 +161,260 @@ namespace Stj.Security
                 }
             }
         }
+        
+        public void AddAppGroupsToRoles(string[] groupNames, string[] roleNames, bool force=false)
+        {
+            CheckArrayParameter(ref roleNames, true, true, true, 0, "roleNames");
+            CheckArrayParameter(ref groupNames, true, true, true, 0, "groupNames");
+
+            var roles = new object[roleNames.Length];
+            int i = 0;
+            foreach (var roleName in roleNames)
+            {
+                var role = GetRole(roleName);
+                if (role == null)
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleDoesNotExist, roleName));
+                }
+                roles[i++] = role;
+            }
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (var groupName in groupNames)
+                    {
+                        var group = this.GetAppGroup(groupName);
+                        
+                            foreach (IAzRole role in roles)
+                            {
+                                try
+                                {
+                                    role.AddAppMember(group.Name, null);
+                                    role.Submit(0, null);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (!force)
+                                        throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                                }
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var role in roles)
+                    {
+                        Marshal.FinalReleaseComObject(role);
+                    }
+                }
+            }
+        }
+
+        public void AddOperationsToTasks(string[] operationNames, string[] taskNames, bool force = false)
+        {
+            CheckArrayParameter(ref taskNames, true, true, true, 0, "taskNames");
+            CheckArrayParameter(ref operationNames, true, true, true, 0, "operationNames");
+
+            var tasks = new object[taskNames.Length];
+            int i = 0;
+            foreach (var roleName in taskNames)
+            {
+                var task = GetTask(roleName);
+                if (task == null)
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleDoesNotExist, roleName));
+                }
+                tasks[i++] = task;
+            }
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (var operationName in operationNames)
+                    {
+                        var operation = this.GetOperation(operationName);
+
+                            foreach (IAzTask task in tasks)
+                            {
+                            try
+                            {
+                                task.AddOperation(operation.Name, null);
+                                task.Submit(0, null);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!force)
+                                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var task in tasks)
+                    {
+                        Marshal.FinalReleaseComObject(task);
+                    }
+                }
+            }
+        }
+
+        public void AddTasksToTasks(string[] _tasknNames, string[] taskNames, bool force = false)
+        {
+            CheckArrayParameter(ref taskNames, true, true, true, 0, "taskNames");
+            CheckArrayParameter(ref _tasknNames, true, true, true, 0, "tasknNames");
+
+            var tasks = new object[taskNames.Length];
+            int i = 0;
+            foreach (var roleName in taskNames)
+            {
+                var task = GetTask(roleName);
+                if (task == null)
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleDoesNotExist, roleName));
+                }
+                tasks[i++] = task;
+            }
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (var taskName in _tasknNames)
+                    {
+                        var _task = this.GetTask(taskName);
+
+                        
+                            foreach (IAzTask task in tasks)
+                            {
+                            try
+                            {
+                                task.AddTask(_task.Name, null);
+                                task.Submit(0, null);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!force)
+                                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var task in tasks)
+                    {
+                        Marshal.FinalReleaseComObject(task);
+                    }
+                }
+            }
+        }
+
+        public void AddTasksToRoles(string[] taskNames, string[] roleNames, bool force = false)
+        {
+            CheckArrayParameter(ref roleNames, true, true, true, 0, "roleNames");
+            CheckArrayParameter(ref taskNames, true, true, true, 0, "taskNames");
+
+            var roles = new object[roleNames.Length];
+            int i = 0;
+            foreach (var roleName in roleNames)
+            {
+                var role = GetRole(roleName);
+                if (role == null)
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleDoesNotExist, roleName));
+                }
+                roles[i++] = role;
+            }
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (var taskName in taskNames)
+                    {
+                        var task = this.GetTask(taskName);
+
+                            foreach (IAzRole role in roles)
+                            {
+                            try
+                            {
+
+                                role.AddTask(task.Name, null);
+                                role.Submit(0, null);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!force)
+                                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                            }
+
+                        }
+                    }
+                }
+                finally
+                {
+                    foreach (var role in roles)
+                    {
+                        Marshal.FinalReleaseComObject(role);
+                    }
+                }
+            }
+        }
+
+        public void AddOperationsToRoles(string[] operationNames, string[] roleNames, bool force = false)
+        {
+            CheckArrayParameter(ref roleNames, true, true, true, 0, "roleNames");
+            CheckArrayParameter(ref operationNames, true, true, true, 0, "operationNames");
+
+            var roles = new object[roleNames.Length];
+            int i = 0;
+            foreach (var roleName in roleNames)
+            {
+                var role = GetRole(roleName);
+                if (role == null)
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleDoesNotExist, roleName));
+                }
+                roles[i++] = role;
+            }
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (var operationName in operationNames)
+                    {
+                        var operation = this.GetOperation(operationName);
+
+                            foreach (IAzRole role in roles)
+                            {
+                            try
+                            {
+                                role.AddOperation(operation.Name, null);
+                                role.Submit(0, null);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (!force)
+                                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                            }
+                        }
+                        
+                    }
+                }
+                finally
+                {
+                    foreach (var role in roles)
+                    {
+                        Marshal.FinalReleaseComObject(role);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Adds a new role to the data source for the configured Application Name. 
@@ -166,11 +426,16 @@ namespace Stj.Security
         /// <exception cref="AzManProviderException">If another exception occurs.</exception>
         public override void CreateRole(string roleName)
         {
-            CheckParameter(ref roleName, true, true, true, 0, "roleName");
+            this.CreateRole(roleName, String.Format("Role {0}", roleName));
+        }
+        
+        public void CreateRole(string roleName, string roleDescription)
+        {
+            this.CheckParameter(ref roleName, true, true, true, 0, "roleName");
 
             using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
             {
-                if (RoleExists(roleName))
+                if (this.RoleExists(roleName))
                 {
                     throw new ProviderException(string.Format(Resources.MessageAzManRoleAlreadyExists, roleName));
                 }
@@ -179,10 +444,129 @@ namespace Stj.Security
                 {
                     var task = store.Application.CreateTask(roleName, null);
                     task.IsRoleDefinition = 1;
+                    task.Description = roleDescription;
                     task.Submit(0, null);
                     var role = store.Application.CreateRole(roleName, null);
+                    role.Description = roleDescription;
                     role.AddTask(roleName, null);
                     role.Submit(0, null);
+                }
+                catch (Exception ex)
+                {
+                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                }
+            }
+        }
+
+        public void CreateRoleTask(string taskName, string roleName, string taskDescription)
+        {
+            this.CheckParameter(ref roleName, true, true, true, 0, "roleName");
+            this.CheckParameter(ref taskName, true, true, true, 0, "taskName");
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                if (this.TaskExists(roleName))
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleAlreadyExists, roleName));
+                }
+
+                if (!this.RoleExists(roleName))
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleAlreadyExists, roleName));
+                }
+
+                try
+                {
+                    var task = store.Application.CreateTask(roleName, null);
+                    task.IsRoleDefinition = 1;
+                    task.Description = taskDescription;
+                    task.Submit(0, null);
+                    var role = this.GetRole(roleName);
+                    role.AddTask(roleName, null);
+                    role.Submit(0, null);
+                }
+                catch (Exception ex)
+                {
+                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                }
+            }
+        }
+
+        public void CreateOperation(string operationName, string operationDescription=null)
+        {
+            this.CheckParameter(ref operationName, true, true, true, 0, "operationName");
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                if (this.OperationExists(operationName))
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleAlreadyExists, operationName));
+                }
+                operationDescription = !String.IsNullOrWhiteSpace(operationDescription)? operationDescription : String.Format("Can {0}", operationName);
+                try
+                {
+                    var operation = store.Application.CreateOperation(operationName);
+                    operation.OperationID = this.OperationOffset + store.Application.Operations.Count;
+                    operation.Description = operationDescription;
+                    operation.Submit(0, null);
+                }
+                catch (Exception ex)
+                {
+                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                }
+            }
+        }
+
+        public void DeleteAllOperations()
+        {
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    var operations = (from IAzOperation operation in store.Application.Operations select operation.Name).ToArray();
+                    foreach (var operation in operations)
+                        store.Application.DeleteOperation(operation);
+                }
+                catch (Exception ex)
+                {
+                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                }
+            }
+        }
+
+        public void CreateTask(string taskName, string taskDescription = null)
+        {
+            this.CheckParameter(ref taskName, true, true, true, 0, "taskName");
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                if (this.TaskExists(taskName))
+                {
+                    throw new ProviderException(string.Format(Resources.MessageAzManRoleAlreadyExists, taskName));
+                }
+                taskDescription = !String.IsNullOrWhiteSpace(taskDescription) ? taskDescription : String.Format("Task {0}", taskName);
+                try
+                {
+                    var task = store.Application.CreateTask(taskName);
+                    task.Description = taskDescription;
+                    task.Submit(0, null);
+                }
+                catch (Exception ex)
+                {
+                    throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+                }
+            }
+        }
+
+        public void DeleteAllTasks()
+        {
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    var tasks = (from IAzTask task in store.Application.Tasks select task.Name).ToArray();
+                    foreach (var task in tasks)
+                        store.Application.DeleteTask(task);
                 }
                 catch (Exception ex)
                 {
@@ -488,6 +872,54 @@ namespace Stj.Security
             finally
             {
                 if (role != null) Marshal.FinalReleaseComObject(role);
+            }
+
+            return success;
+        }
+
+        public bool TaskExists(string taskName)
+        {
+            CheckParameter(ref taskName, true, true, true, 0, "taskName");
+
+            var success = false;
+
+            object task = null;
+            try
+            {
+                task = GetTask(taskName);
+                success = (task != null);
+            }
+            catch (Exception ex)
+            {
+                throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+            }
+            finally
+            {
+                if (task != null) Marshal.FinalReleaseComObject(task);
+            }
+
+            return success;
+        }
+
+        public bool OperationExists(string operationName)
+        {
+            CheckParameter(ref operationName, true, true, true, 0, "operationName");
+
+            var success = false;
+
+            object operation = null;
+            try
+            {
+                operation = GetOperation(operationName);
+                success = (operation != null);
+            }
+            catch (Exception ex)
+            {
+                throw new AzManProviderException(Resources.MessageAzManAnExceptionOccured, ex);
+            }
+            finally
+            {
+                if (operation != null) Marshal.FinalReleaseComObject(operation);
             }
 
             return success;
@@ -944,7 +1376,124 @@ namespace Stj.Security
             return role;
         }
 
+        private IAzTask GetTask(string taskName)
+        {
+            IAzTask task = null;
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    task = store.Application.OpenTask(taskName, null);
+                }
+                catch (COMException ex)
+                {
+                    // Role does not exist
+                    if (ex.ErrorCode == -2147023728) return null;
+                    throw;
+                }
+            }
+
+            return task;
+        }
+        
+        private IAzOperation GetOperation(string operationName)
+        {
+            IAzOperation operation = null;
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    operation = store.Application.OpenOperation(operationName, null);
+                }
+                catch (COMException ex)
+                {
+                    // Role does not exist
+                    if (ex.ErrorCode == -2147023728) return null;
+                    throw;
+                }
+            }
+
+            return operation;
+        }
+
+        private IAzApplicationGroup GetAppGroup(string groupName)
+        {
+            IAzApplicationGroup group = null;
+
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    group = store.Application.OpenApplicationGroup(groupName, null);
+                }
+                catch (COMException ex)
+                {
+                    // Role does not exist
+                    if (ex.ErrorCode == -2147023728) return null;
+                    throw;
+                }
+            }
+
+            return group;
+        }
         #endregion Utility
+        #region Tools
+        private void ProcessAzManRoleDefinitions(IAzApplication app, IAzTask task, int level, Action<string, string, int> callbackAction)
+        {
+            bool isRole = (task.IsRoleDefinition == 1);
+
+            callbackAction((isRole ? "Role" : "Task"), task.Name, level);
+            level++;
+
+            // Iterate over any subtasks defined for this task (or role)
+            Array tasks = (Array)task.Tasks;
+            foreach (string taskName in tasks)
+            {
+                IAzTask currentTask = app.OpenTask(taskName, null);
+
+                // Need to recursively process child roles and tasks
+                ProcessAzManRoleDefinitions(app, currentTask, level, callbackAction);
+            }
+
+            // Iterate over any opeations defined for this task (or role)
+            Array taskOperations = (Array)task.Operations;
+            foreach (string operationName in taskOperations)
+                callbackAction("Operation", operationName, level);
+
+            if (task.IsRoleDefinition == 1)
+            {
+                IAzRole role = app.OpenRole(task.Name, null);
+                Array roleMembers = (Array)role.Members;
+                foreach (string memberName in roleMembers)
+                    callbackAction("Member", memberName, level);
+            }
+        }
+
+        public string GetRoleDefinitionHierarchy()
+        {
+            StringBuilder output = new StringBuilder();
+            using (var store = new AzManStore(ApplicationName, StoreLocation, ConnectionUsername, ConnectionPassword, ConnectionDomain))
+            {
+                try
+                {
+                    foreach (IAzTask task in store.Application.Tasks)
+                    {
+                        if (task.IsRoleDefinition == 1)
+                            ProcessAzManRoleDefinitions(store.Application, task, 0, (type, name, level) => output.Append("".PadLeft(level * 2) + type + ": " + name + "\n"));
+                    }
+                }
+                catch (COMException ex)
+                {
+                    // Role does not exist
+                    if (ex.ErrorCode == -2147023728) return null;
+                    throw;
+                }
+            }
+            return output.ToString();
+        }
+        #endregion Tools
 
         #endregion Methods
 
