@@ -10,11 +10,10 @@ using System.Runtime.Serialization;
 namespace Stj.Security.Principal
 {
     [Serializable]
-    public class AzManPrincipal : IUserPrincipal
+    public class AzManPrincipal : IPrincipal
     {
 
         #region Properties
-        public string Name { get { return this.Identity.Name; } }
         public bool IsAuthenticated { get { return this.Identity.IsAuthenticated; } }
         public IIdentity Identity { get; private set; }
         public string[] Roles { get; set; }
@@ -26,6 +25,8 @@ namespace Stj.Security.Principal
         #region Constructors
 
         public AzManPrincipal(IIdentity identity) : this(identity, null, null, null) { }
+
+        public AzManPrincipal(IIdentity identity, string[] roles) : this(identity, roles, null, null) { }
 
         public AzManPrincipal(IIdentity identity, string[] roles, string[] operations, string[] tasks)
         {
