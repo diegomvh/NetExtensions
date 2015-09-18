@@ -13,12 +13,12 @@ namespace Stj.Security
     public static class MembershipHelper
     {
         #region Get user
-        public static MembershipUser GetUser(object identifier)
+        public static MembershipUser GetUser(object identifier, bool userIsOnline=false)
         {
             MembershipUser muser = null;
             foreach (MembershipProvider provider in System.Web.Security.Membership.Providers)
             {
-                muser = provider.GetUser(identifier, true);
+                muser = provider.GetUser(identifier, userIsOnline);
                 if (muser != null)
                     return muser;
             }
