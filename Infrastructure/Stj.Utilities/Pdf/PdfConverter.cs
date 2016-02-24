@@ -88,15 +88,21 @@
             return null;
         }
 
-        public byte[] FromRazorView(string template, string applicationPathRoot, string viewPathRoot, IDictionary<string, object> values)
+        public byte[] FromRazorView(PdfRazorModel model, string viewPathRoot = "", string applicationPathRoot = "")
         {
+            var directory = System.AppDomain.CurrentDomain.BaseDirectory;
+            if (String.IsNullOrWhiteSpace(viewPathRoot))
+                viewPathRoot = Path.GetFullPath(Path.Combine(directory, @"Views"));
+            if (String.IsNullOrWhiteSpace(applicationPathRoot))
+                applicationPathRoot = Path.GetFullPath(directory);
+
             var engine = new Stj.Utilities.RazorEngine.FileSystemRazorViewEngine(applicationPathRoot, viewPathRoot);
             var controller_context = new ControllerContext();
-            var view = engine.FindView(controller_context, template, null, true);
+            var view = engine.FindView(controller_context, model.ViewName, null, true);
             using (var writer = new StringWriter())
             {
                 var context = new ViewContext(controller_context, view.View,
-                    new ViewDataDictionary(values), new TempDataDictionary(), writer);
+                    model.ViewData, new TempDataDictionary(), writer);
                 view.View.Render(context, writer);
                 writer.Flush();
                 return this.FromString(writer.ToString());

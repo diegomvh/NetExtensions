@@ -38,7 +38,8 @@ namespace Stj.Utilities.RazorEngine
         public static IHtmlString Image(this HtmlHelper html, string imagePathOrUrl, string alt = "")
         {
             if (string.IsNullOrWhiteSpace(imagePathOrUrl)) throw new ArgumentException("Path or URL required", "imagePathOrUrl");
-            var applicationRoot = (string)html.ViewData["ApplicationPathRoot"];
+            var model = (RazorModel)html.ViewData.Model;
+            var applicationRoot = (string)model.ViewData["ApplicationPathRoot"];
 
             if (IsApplicationPath(imagePathOrUrl)) {
                 imagePathOrUrl = new Uri(applicationRoot + imagePathOrUrl.Substring(2)).OriginalString;
@@ -48,6 +49,22 @@ namespace Stj.Utilities.RazorEngine
                 imagePathOrUrl = html.ViewContext.HttpContext.Server.MapPath(imagePathOrUrl);
             }
             return new HtmlString(string.Format("<img src=\"{0}\" alt=\"{1}\"/>", imagePathOrUrl, html.AttributeEncode(alt)));
+        }
+
+        public static IHtmlString EmbedRawFile(this HtmlHelper html, string filePathOrUrl)
+        {
+
+            if (string.IsNullOrWhiteSpace(filePathOrUrl)) throw new ArgumentException("Path or URL required", "imagePathOrUrl");
+            dynamic model = html.ViewData.Model;
+            var applicationRoot = (string)model.ViewData["ApplicationPathRoot"];
+
+            if (IsApplicationPath(filePathOrUrl))
+            {
+                filePathOrUrl = new Uri(applicationRoot + filePathOrUrl.Substring(2)).LocalPath;
+                var content = File.ReadAllText(filePathOrUrl);
+                return html.Raw(content);
+            }
+            return html.Raw("");
         }
 
         static bool IsFileName(string pathOrUrl)
