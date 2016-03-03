@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using System.Security.Principal;
-using System.Runtime.Serialization;
 
 #endregion Using
 
@@ -68,13 +67,17 @@ namespace Stj.Security.Principal
             return requiredTasks.All(t => Tasks.Contains(t));
         }
 
-        public bool Can(string permission)
-        { 
+        public bool Can(string[] permissions)
+        {
             //TODO: Cosas locas como (algo1 && algo2) || algo3  :)
-            var permissions = new string[] { permission };
             return this.HasRequiredOperations(permissions) || this.HasRequiredTasks(permissions);
         }
 
+        public bool Can(string permission)
+        {
+            return this.Can(new string[] { permission });
+        }
+        
         #endregion Public
 
         #endregion Methods

@@ -117,6 +117,11 @@
             return (this.Account is AzManPrincipal) && ((AzManPrincipal)this.Account).HasRequiredTasks(new string[] { task });
         }
 
+        public bool Can(string permission)
+        {
+            return (this.Account is AzManPrincipal) && ((AzManPrincipal)this.Account).Can(new string[] { permission });
+        }
+
         public string[] GetRoles()
         {
             return (this.Account is AzManPrincipal)? ((AzManPrincipal)this.Account).Roles : new string[0];
