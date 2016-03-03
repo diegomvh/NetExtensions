@@ -30,6 +30,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=3.3.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\..\..\SerconexPenal\packages\AutoMapper.3.3.1\lib\net40\AutoMapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="AutoMapper.Net4, Version=3.3.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\..\..\SerconexPenal\packages\AutoMapper.3.3.1\lib\net40\AutoMapper.Net4.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Common.Logging, Version=2.2.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Common.Logging.2.2.0\lib\net40\Common.Logging.dll</HintPath>
       <Private>True</Private>
@@ -122,11 +130,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoMapper\AutoMapperExtensions.cs" />
     <Compile Include="Elmah\ElmahLogger.cs" />
     <Compile Include="Elmah\ElmahLoggerFactoryAdapter.cs" />
+    <Compile Include="Encoding.cs" />
     <Compile Include="Files.cs" />
     <Compile Include="Format.cs" />
     <Compile Include="Glob.cs" />
+    <Compile Include="Mail\Bodypart.cs" />
+    <Compile Include="Mail\ContentDisposition.cs" />
+    <Compile Include="Mail\ContentTransferEncoding.cs" />
+    <Compile Include="Mail\ContentType.cs" />
+    <Compile Include="Mail\Extensions.cs" />
+    <Compile Include="Mail\MailMessage.cs" />
+    <Compile Include="Mail\MessageBuilder.cs" />
+    <Compile Include="Mail\MIMEPart.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableAlternateView.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableAlternateViewCollection.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableAttachment.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableAttachmentCollection.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableContentDisposition.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableContentType.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableLinkedResource.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableLinkedResourceCollection.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableMailAddress.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableMailAddressCollection.cs" />
+    <Compile Include="Mail\SerializableMailMessage\SerializableMailMessage.cs" />
     <Compile Include="MimeTypeMap.cs" />
     <Compile Include="Pdf\PdfConverter.cs" />
     <Compile Include="Pdf\PdfRazorModel.cs" />
@@ -150,6 +179,7 @@
     <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
     <Error Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
   </Target>
+  <Import Project="..\..\..\SerconexPenal\packages\AutoMapper.3.3.1\tools\AutoMapper.targets" Condition="Exists('..\..\..\SerconexPenal\packages\AutoMapper.3.3.1\tools\AutoMapper.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
