@@ -15,9 +15,13 @@ namespace Stj.Utilities.Mail
             foreach (var res in view.LinkedResources)
             LinkedResources.Add(res);
             ContentId = view.ContentId;
+
+            // Seek and copy
+            view.ContentStream.Seek(0, SeekOrigin.Begin);
             this.ContentStream = new MemoryStream();
             view.ContentStream.CopyTo(this.ContentStream);
             view.ContentStream.Seek(0, SeekOrigin.Begin);
+
             ContentType = view.ContentType;
             TransferEncoding = view.TransferEncoding;
         }

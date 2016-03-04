@@ -14,9 +14,12 @@ namespace Stj.Utilities.Mail
             ContentId = resource.ContentId;
             resource.ContentStream.Position = 0;
 
+            //Seek and copy
+            resource.ContentStream.Seek(0, SeekOrigin.Begin);
             this.ContentStream = new MemoryStream();
             resource.ContentStream.CopyTo(this.ContentStream);
             resource.ContentStream.Seek(0, SeekOrigin.Begin);
+
             ContentType = resource.ContentType;
             TransferEncoding = resource.TransferEncoding;
 

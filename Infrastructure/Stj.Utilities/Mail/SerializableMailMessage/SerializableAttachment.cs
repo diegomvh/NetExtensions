@@ -14,9 +14,13 @@ namespace Stj.Utilities.Mail
             NameEncoding = attachment.NameEncoding;
             ContentDisposition = attachment.ContentDisposition;
             ContentId = attachment.ContentId;
+
+            //Seek and copy
+            attachment.ContentStream.Seek(0, SeekOrigin.Begin);
             this.ContentStream = new MemoryStream();
             attachment.ContentStream.CopyTo(ContentStream);
             attachment.ContentStream.Seek(0, SeekOrigin.Begin);
+
             ContentType = attachment.ContentType;
             TransferEncoding = attachment.TransferEncoding;
         }
