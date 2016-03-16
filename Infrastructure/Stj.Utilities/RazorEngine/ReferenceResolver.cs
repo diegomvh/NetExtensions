@@ -35,7 +35,9 @@ namespace Stj.Utilities.RazorEngine
                 string assemblyLoaded = FindLoaded(loadedAssemblies, section[key]);
                 if (string.IsNullOrEmpty(assemblyLoaded))
                 {
-                    var assemblyFile = Path.GetFullPath(Path.Combine(directory, section[key]));
+                    var assemblyFile = section[key];
+                    if (assemblyFile.StartsWith("~/"))
+                        assemblyFile = Path.GetFullPath(Path.Combine(directory, assemblyFile.Substring(2)));
                     yield return CompilerReference.From(Assembly.LoadFrom(assemblyFile));
                 }
                 else

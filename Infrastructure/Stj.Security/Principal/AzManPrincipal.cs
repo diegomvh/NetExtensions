@@ -77,7 +77,17 @@ namespace Stj.Security.Principal
         {
             return this.Can(new string[] { permission });
         }
-        
+
+        public bool HasRequiredOperation(string operation)
+        {
+            return this.HasRequiredOperations(new string[] { operation });
+        }
+
+        public bool HasRequiredTask(string task)
+        {
+            return this.HasRequiredTasks(new string[] { task });
+        }
+
         #endregion Public
 
         #endregion Methods
