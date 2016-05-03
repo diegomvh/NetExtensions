@@ -31,6 +31,10 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.CustomXmlDataProperties;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.IO;
+using System.IO.Packaging;
+using DocumentFormat.OpenXml.CustomProperties;
+using DocumentFormat.OpenXml.VariantTypes;
 
 namespace Stj.OpenXml.Extensions
 {
@@ -62,6 +66,74 @@ namespace Stj.OpenXml.Extensions
 
             // Bind the content controls to the destination part's XML document.
             document.BindContentControls(destPart);
+        }
+
+        public static XDocument ToFlatOpcDocument(this WordprocessingDocument document)
+        {
+            return document.ToFlatOpcDocument(new XProcessingInstruction("mso-application", "progid=\"Word.Document\""));
+        }
+
+        public static string ToFlatOpcString(this WordprocessingDocument document)
+        {
+            return document.ToFlatOpcDocument().ToString();
+        }
+
+        internal static WordprocessingDocument FromFlatOpcString(string text)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+
+            return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), new MemoryStream(), true);
+        }
+
+        internal static WordprocessingDocument FromFlatOpcString(string text, Stream stream, bool isEditable)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+
+            return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), stream, isEditable);
+        }
+
+        public static WordprocessingDocument FromFlatOpcString(string text, string path, bool isEditable)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+            if (path == null)
+                throw new ArgumentNullException("path");
+
+            return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), path, isEditable);
+        }
+
+        public static WordprocessingDocument FromFlatOpcString(string text, Package package)
+        {
+            if (text == null)
+                throw new ArgumentNullException("text");
+            if (package == null)
+                throw new ArgumentNullException("package");
+
+            return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), package);
+        }
+
+        public static WordprocessingDocument CreateClone(this WordprocessingDocument document, string path)
+        {
+            return WordprocessingDocument.Create(path, document.DocumentType, document.AutoSave);
+        }
+
+        public static WordprocessingDocument CreateClone(this WordprocessingDocument document, Package package)
+        {
+            return WordprocessingDocument.Create(package, document.DocumentType, document.AutoSave);
+        }
+
+        public static WordprocessingDocument CreateClone(this WordprocessingDocument document, Stream stream)
+        {
+            return WordprocessingDocument.Create(stream, document.DocumentType, document.AutoSave);
+        }
+
+        public static WordprocessingDocument OpenClone(this WordprocessingDocument document, Stream stream, bool isEditable, OpenSettings openSettings)
+        {
+            return WordprocessingDocument.Open(stream, isEditable, openSettings);
         }
 
         /// <summary>
@@ -499,6 +571,101 @@ namespace Stj.OpenXml.Extensions
             part.Styles = new Styles();
             part.Styles.Save();
             return part.Styles;
+        }
+
+        public static WordprocessingDocument FromFlatOpcDocument(XDocument document)
+        {
+            return WordprocessingDocumentExtensions.FromFlatOpcDocument(document, new MemoryStream(), true);
+        }
+
+        public static WordprocessingDocument FromFlatOpcDocument(XDocument document, Stream stream, bool isEditable)
+        {
+            if (document == null)
+                throw new ArgumentNullException("document");
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+
+            return WordprocessingDocument.Open(OpenXmlPackageExtensions.FromFlatOpcDocumentCore(document, stream), isEditable);
+        }
+
+        public static WordprocessingDocument FromFlatOpcDocument(XDocument document, string path, bool isEditable)
+        {
+            if (document == null)
+                throw new ArgumentNullException("document");
+            if (path == null)
+                throw new ArgumentNullException("path");
+
+            return WordprocessingDocument.Open(OpenXmlPackageExtensions.FromFlatOpcDocumentCore(document, path), isEditable);
+        }
+
+        public static WordprocessingDocument FromFlatOpcDocument(XDocument document, Package package)
+        {
+            if (document == null)
+                throw new ArgumentNullException("document");
+            if (package == null)
+                throw new ArgumentNullException("package");
+
+            return WordprocessingDocument.Open(OpenXmlPackageExtensions.FromFlatOpcDocumentCore(document, package));
+        }
+
+        public static void SetCustomProperty(this WordprocessingDocument document, string name,
+            object value)
+        {
+            var newProp = new CustomDocumentProperty();
+            switch (value.GetType().Name)
+            {
+                case "DateTime":
+                    if ((value) is DateTime)
+                        newProp.VTFileTime =
+                            new VTFileTime(string.Format("{0:s}Z",
+                                Convert.ToDateTime(value)));
+                    break;
+                case "int":
+                    if ((value) is int)
+                        newProp.VTInt32 = new VTInt32(value.ToString());
+                    break;
+                case "double":
+                    if (value is double)
+                        newProp.VTFloat = new VTFloat(value.ToString());
+                    break;
+                case "string":
+                    newProp.VTLPWSTR = new VTLPWSTR(value.ToString());
+                    break;
+                case "boolean":
+                    if (value is bool)
+                        newProp.VTBool = new VTBool(Convert.ToBoolean(value).ToString().ToLower());
+                    break;
+                default:
+                    newProp.VTBString = new VTBString(value.ToString());
+                    break;
+            }
+
+            var customProps = document.CustomFilePropertiesPart;
+            if (customProps == null)
+            {
+                customProps = document.AddCustomFilePropertiesPart();
+                customProps.Properties =
+                    new DocumentFormat.OpenXml.CustomProperties.Properties();
+            }
+
+            var props = customProps.Properties;
+            if (props != null)
+            {
+                var prop =
+                    props.Where(
+                    p => ((CustomDocumentProperty)p).Name.Value
+                        == name).FirstOrDefault();
+
+                if (prop != null)
+                    prop.Remove();
+                props.AppendChild(newProp);
+                int pid = 2;
+                foreach (CustomDocumentProperty item in props)
+                {
+                    item.PropertyId = pid++;
+                }
+                props.Save();
+            }
         }
     }
 }

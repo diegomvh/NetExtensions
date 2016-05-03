@@ -23,6 +23,7 @@
 
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
+using Stj.OpenXml.Extensions;
 
 namespace Stj.OpenXml.Transformation
 {

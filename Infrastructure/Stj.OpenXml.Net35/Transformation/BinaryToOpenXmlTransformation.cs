@@ -24,16 +24,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using ContractArchitect.OpenXml.Extensions;
-using DIaLOGIKa.b2xtranslator.DocFileFormat;
-using DIaLOGIKa.b2xtranslator.StructuredStorage.Common;
-using DIaLOGIKa.b2xtranslator.StructuredStorage.Reader;
-using DIaLOGIKa.b2xtranslator.Tools;
-using DIaLOGIKa.b2xtranslator.WordprocessingMLMapping;
-using DIaLOGIKa.b2xtranslator.ZipUtils;
-using DocumentFormat.OpenXml.Wordprocessing;
+using Stj.OpenXml.Extensions;
 using Packaging = DocumentFormat.OpenXml.Packaging;
-using OpenXmlPowerTools;
+using DIaLOGIKa.b2xtranslator.StructuredStorage.Reader;
+using DIaLOGIKa.b2xtranslator.DocFileFormat;
+using DIaLOGIKa.b2xtranslator.WordprocessingMLMapping;
+using DIaLOGIKa.b2xtranslator.Tools;
+using DIaLOGIKa.b2xtranslator.StructuredStorage.Common;
+using DIaLOGIKa.b2xtranslator.ZipUtils;
 
 namespace Stj.OpenXml.Transformation
 {
@@ -173,10 +171,11 @@ namespace Stj.OpenXml.Transformation
             var element = node as XElement;
             if (element == null) return node;
 
-            if (element.Name == W.r)
+            // TODO Que carajo es W.r
+            if (element.Name == "")
             {
                 var children = element.Elements().ToList();
-                if (children.Count == 1 && children[0].Name == W.t && children[0].IsEmpty)
+                if (children.Count == 1 && children[0].Name == "" && children[0].IsEmpty)
                     return null;
             }
 

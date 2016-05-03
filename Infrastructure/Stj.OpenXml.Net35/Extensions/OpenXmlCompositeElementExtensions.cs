@@ -26,6 +26,7 @@ using System.Diagnostics.CodeAnalysis;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+
 namespace Stj.OpenXml.Extensions
 {
     public static class OpenXmlCompositeElementExtensions

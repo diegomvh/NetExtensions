@@ -23,7 +23,7 @@
 
 using System;
 using System.Xml.Linq;
-using ContractArchitect.OpenXml.Extensions;
+using Stj.OpenXml.Extensions;
 using DocumentFormat.OpenXml.Packaging;
 
 namespace Stj.OpenXml.Transformation

@@ -205,7 +205,7 @@ namespace Stj.OpenXml.Extensions
         public static IEnumerable<OpenXmlElement> LogicalChildrenContent(this OpenXmlElement element)
         {
             if (element is Document)
-                return element.Descendants<Body>().Take(1);
+                return element.Descendants<Body>().Take(1).Cast<DocumentFormat.OpenXml.OpenXmlElement>();
 
             if (element is Body ||
                 element is TableCell ||

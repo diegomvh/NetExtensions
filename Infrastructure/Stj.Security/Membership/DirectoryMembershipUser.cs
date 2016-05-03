@@ -148,7 +148,7 @@
                 this._dsuser.UserDontExpirePassword = value;
             }
         }
-
+        
         public void SetPassword(string password) {
             DirectoryEntry directoryEntry = this._dsuser.GetUnderlyingObject() as DirectoryEntry;
             const long ADS_OPTION_PASSWORD_PORTNUMBER = 6;

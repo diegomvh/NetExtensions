@@ -23,6 +23,7 @@
 
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Packaging;
+using Stj.OpenXml.Extensions;
 
 namespace Stj.OpenXml.Transformation
 {
@@ -43,15 +44,15 @@ namespace Stj.OpenXml.Transformation
             var t = typeof (TDocument);
             if (t == typeof (WordprocessingDocument))
             {
-                return WordprocessingDocument.FromFlatOpcDocument(document) as TDocument;
+                return WordprocessingDocumentExtensions.FromFlatOpcDocument(document) as TDocument;
             }
             if (t == typeof (SpreadsheetDocument))
             {
-                return SpreadsheetDocument.FromFlatOpcDocument(document) as TDocument;
+                return SpreadsheetDocumentExtensions.FromFlatOpcDocument(document) as TDocument;
             }
             if (t == typeof (PresentationDocument))
             {
-                return PresentationDocument.FromFlatOpcDocument(document) as TDocument;
+                return PresentationDocumentExtensions.FromFlatOpcDocument(document) as TDocument;
             }
             throw new OpenXmlTransformationException("Unsupported document type: " + t);
         }
@@ -68,15 +69,15 @@ namespace Stj.OpenXml.Transformation
             var t = typeof (TDocument);
             if (t == typeof (WordprocessingDocument))
             {
-                return WordprocessingDocument.FromFlatOpcString(text) as TDocument;
+                return WordprocessingDocumentExtensions.FromFlatOpcString(text) as TDocument;
             }
             if (t == typeof (SpreadsheetDocument))
             {
-                return SpreadsheetDocument.FromFlatOpcString(text) as TDocument;
+                return SpreadsheetDocumentExtensions.FromFlatOpcString(text) as TDocument;
             }
             if (t == typeof (PresentationDocument))
             {
-                return PresentationDocument.FromFlatOpcString(text) as TDocument;
+                return PresentationDocumentExtensions.FromFlatOpcString(text) as TDocument;
             }
             throw new OpenXmlTransformationException("Unsupported document type: " + t);
         }

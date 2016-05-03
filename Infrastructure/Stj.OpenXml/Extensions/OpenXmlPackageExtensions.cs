@@ -25,12 +25,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DocumentFormat.OpenXml.Packaging;
-using System.Xml.Linq;
-using System.IO.Packaging;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Xml;
 
 namespace Stj.OpenXml.Extensions
 {
@@ -39,8 +33,6 @@ namespace Stj.OpenXml.Extensions
     /// </summary>
     public static class OpenXmlPackageExtensions
     {
-        private static readonly XNamespace pkg = "http://schemas.microsoft.com/office/2006/xmlPackage";
-
         /// <summary>
         /// Gets all parts contained in the <see cref="OpenXmlPackage" /> in a
         /// breadth-first fashion, i.e., the direct and indirect relationship
@@ -50,119 +42,6 @@ namespace Stj.OpenXml.Extensions
         public static IEnumerable<OpenXmlPart> GetAllParts(this OpenXmlPackage package)
         {
             return new OpenXmlParts(package);
-        }
-
-        public static void Save(this OpenXmlPackage package)
-        {
-            package.Package.Flush();
-        }
-
-        public static OpenXmlPackage Clone(this OpenXmlPackage package)
-        {
-            return package.Clone(new MemoryStream(), true, new OpenSettings());
-        }
-
-        public static OpenXmlPackage Clone(this OpenXmlPackage package, Stream stream)
-        {
-            return package.Clone(stream, package.FileOpenAccess == FileAccess.ReadWrite, new OpenSettings());
-        }
-
-        public static OpenXmlPackage Clone(this OpenXmlPackage package, Stream stream, bool isEditable)
-        {
-            return package.Clone(stream, isEditable);
-        }
-
-        public static OpenXmlPackage Clone(this OpenXmlPackage package, Stream stream, bool isEditable, OpenSettings openSettings)
-        {
-            if (stream == null)
-                throw new ArgumentNullException("stream");
-
-            if (openSettings == null)
-                openSettings = new OpenSettings();
-
-            package.Package.Flush();
-            using (OpenXmlPackage clone = package.CreateClone(stream))
-            {
-                foreach (var part in package.Parts)
-                    clone.AddPart(part.OpenXmlPart, part.RelationshipId);
-            }
-            return package.OpenClone(stream, isEditable, openSettings);
-        }
-
-        public static OpenXmlPackage CreateClone(this OpenXmlPackage package, string path) { return package; }
-        public static OpenXmlPackage CreateClone(this OpenXmlPackage package, Package _package) { return package; }
-        public static OpenXmlPackage CreateClone(this OpenXmlPackage package, Stream stream) { return package; }
-
-        public static OpenXmlPackage OpenClone(this OpenXmlPackage package, Stream stream, bool isEditable, OpenSettings openSettings) { return package; }
-
-        public static XDocument ToFlatOpcDocument(this OpenXmlPackage package, XProcessingInstruction instruction)
-        {
-            package.Package.Flush();
-
-            // Create an XML document with a standalone declaration, processing
-            // instruction (if not null), and a package root element with a
-            // namespace declaration and one child element for each part.
-            return new XDocument(
-                new XDeclaration("1.0", "UTF-8", "yes"),
-                instruction,
-                new XElement(
-                    pkg + "package",
-                    new XAttribute(XNamespace.Xmlns + "pkg", pkg.ToString()),
-                    package.Package.GetParts().Select(part => GetContentsAsXml(part))));
-
-        }
-
-        public static XDocument ToFlatOpcDocument(this OpenXmlPackage package)
-        {
-            return package.ToFlatOpcDocument(new XProcessingInstruction("mso-application", ""));
-        }
-
-        public static string ToFlatOpcString(this OpenXmlPackage package) {
-            return package.ToFlatOpcDocument().ToString();
-        }
-
-        private static XElement GetContentsAsXml(PackagePart part)
-        {
-            if (part.ContentType.EndsWith("xml"))
-            {
-                using (Stream stream = part.GetStream())
-                using (StreamReader streamReader = new StreamReader(stream))
-                using (XmlReader xmlReader = XmlReader.Create(streamReader))
-                    return new XElement(pkg + "part",
-                        new XAttribute(pkg + "name", part.Uri),
-                        new XAttribute(pkg + "contentType", part.ContentType),
-                        new XElement(pkg + "xmlData", XElement.Load(xmlReader)));
-            }
-            else
-            {
-                using (Stream stream = part.GetStream())
-                using (BinaryReader binaryReader = new BinaryReader(stream))
-                {
-                    int len = (int)binaryReader.BaseStream.Length;
-                    byte[] byteArray = binaryReader.ReadBytes(len);
-
-                    // The following expression creates the base64String, then chunks
-                    // it to lines of 76 characters long.
-                    string base64String = System.Convert.ToBase64String(byteArray)
-                        .Select((c, i) => new { Character = c, Chunk = i / 76 })
-                        .GroupBy(c => c.Chunk)
-                        .Aggregate(
-                            new StringBuilder(),
-                            (s, i) =>
-                                s.Append(
-                                    i.Aggregate(
-                                        new StringBuilder(),
-                                        (seed, it) => seed.Append(it.Character),
-                                        sb => sb.ToString())).Append(Environment.NewLine),
-                            s => s.ToString());
-
-                    return new XElement(pkg + "part",
-                        new XAttribute(pkg + "name", part.Uri),
-                        new XAttribute(pkg + "contentType", part.ContentType),
-                        new XAttribute(pkg + "compression", "store"),
-                        new XElement(pkg + "binaryData", base64String));
-                }
-            }
         }
 
         /// <summary>
