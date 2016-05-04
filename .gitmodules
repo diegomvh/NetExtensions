@@ -1,6 +1,6 @@
 [submodule "Third Parties/Open-Xml-PowerTools"]
 	path = Third Parties/Open-Xml-PowerTools
-	url = https://github.com/OfficeDev/Open-Xml-PowerTools.git
+	url = https://github.com/diegomvh/Open-Xml-PowerTools.git
 [submodule "Third Parties/Open-XML-SDK"]
 	path = Third Parties/Open-XML-SDK
 	url = https://github.com/OfficeDev/Open-XML-SDK.git
