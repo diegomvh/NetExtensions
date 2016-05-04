@@ -680,5 +680,19 @@ namespace Stj.OpenXml.Extensions
             }
             return default(T);
         }
+
+        public static void AppendHtmlImportPart(this WordprocessingDocument document, string htmlBody)
+        {
+            MainDocumentPart mainPart = document.MainDocumentPart;
+            AlternativeFormatImportPart altChunk = mainPart.AddAlternativeFormatImportPart(AlternativeFormatImportPartType.Html);
+            string html = string.Concat("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><html><head><title></title></head><body>", htmlBody, "</body></html>");
+            using (Stream stream = altChunk.GetStream())
+            {
+                byte[] Origem = Encoding.UTF8.GetBytes(html);
+                stream.Write(Origem, 0, Origem.Length);
+            }
+            string rID = mainPart.GetIdOfPart(altChunk);
+            mainPart.Document.Body.Append(new AltChunk() { Id = rID });
+        }
     }
 }
