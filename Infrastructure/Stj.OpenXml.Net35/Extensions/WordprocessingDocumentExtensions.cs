@@ -78,7 +78,7 @@ namespace Stj.OpenXml.Extensions
             return document.ToFlatOpcDocument().ToString();
         }
 
-        internal static WordprocessingDocument FromFlatOpcString(string text)
+        public static WordprocessingDocument FromFlatOpcString(string text)
         {
             if (text == null)
                 throw new ArgumentNullException("text");
@@ -86,7 +86,7 @@ namespace Stj.OpenXml.Extensions
             return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), new MemoryStream(), true);
         }
 
-        internal static WordprocessingDocument FromFlatOpcString(string text, Stream stream, bool isEditable)
+        public static WordprocessingDocument FromFlatOpcString(string text, Stream stream, bool isEditable)
         {
             if (text == null)
                 throw new ArgumentNullException("text");
@@ -611,32 +611,28 @@ namespace Stj.OpenXml.Extensions
         public static void SetCustomProperty(this WordprocessingDocument document, string name,
             object value)
         {
-            var newProp = new CustomDocumentProperty();
+            var newProp = new CustomDocumentProperty() { Name = name, FormatId = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}" };
             switch (value.GetType().Name)
             {
                 case "DateTime":
-                    if ((value) is DateTime)
-                        newProp.VTFileTime =
-                            new VTFileTime(string.Format("{0:s}Z",
-                                Convert.ToDateTime(value)));
+                    newProp.VTFileTime =
+                        new VTFileTime(string.Format("{0:s}Z",
+                            Convert.ToDateTime(value)));
                     break;
-                case "int":
-                    if ((value) is int)
-                        newProp.VTInt32 = new VTInt32(value.ToString());
+                case "Int32":
+                    newProp.VTInt32 = new VTInt32(Convert.ToInt32(value).ToString());
                     break;
-                case "double":
-                    if (value is double)
-                        newProp.VTFloat = new VTFloat(value.ToString());
+                case "Int64":
+                    newProp.VTInt64 = new VTInt64(Convert.ToInt64(value).ToString());
                     break;
-                case "string":
+                case "String":
                     newProp.VTLPWSTR = new VTLPWSTR(value.ToString());
                     break;
-                case "boolean":
-                    if (value is bool)
-                        newProp.VTBool = new VTBool(Convert.ToBoolean(value).ToString().ToLower());
+                case "Boolean":
+                    newProp.VTBool = new VTBool(Convert.ToBoolean(value).ToString().ToLower());
                     break;
                 default:
-                    newProp.VTBString = new VTBString(value.ToString());
+                    newProp.VTLPWSTR = new VTLPWSTR(value.ToString());
                     break;
             }
 
@@ -644,8 +640,7 @@ namespace Stj.OpenXml.Extensions
             if (customProps == null)
             {
                 customProps = document.AddCustomFilePropertiesPart();
-                customProps.Properties =
-                    new DocumentFormat.OpenXml.CustomProperties.Properties();
+                customProps.Properties = new Properties();
             }
 
             var props = customProps.Properties;
@@ -666,6 +661,24 @@ namespace Stj.OpenXml.Extensions
                 }
                 props.Save();
             }
+        }
+
+        public static T GetCustomProperty<T>(this WordprocessingDocument document, string name)
+        {
+
+            var customProps = document.CustomFilePropertiesPart;
+            var props = customProps.Properties;
+            if (props != null)
+            {
+                var prop =
+                    props.Where(
+                    p => ((CustomDocumentProperty)p).Name.Value
+                        == name).FirstOrDefault();
+
+                if (prop != null)
+                    return (T)Convert.ChangeType(prop.InnerText, Type.GetType(typeof(T).FullName));
+            }
+            return default(T);
         }
     }
 }

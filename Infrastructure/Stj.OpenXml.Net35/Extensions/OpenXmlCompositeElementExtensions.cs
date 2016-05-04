@@ -21,10 +21,7 @@
  * Version: 1.0.01
  */
 
-using System;
-using System.Diagnostics.CodeAnalysis;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
+ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Stj.OpenXml.Extensions
