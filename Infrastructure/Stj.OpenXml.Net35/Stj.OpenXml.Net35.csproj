@@ -95,6 +95,12 @@
     <Compile Include="Transformation\XmlTransformations.cs" />
     <Compile Include="Transformation\XslOpenXmlTransformation.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Third Parties\Open-Xml-PowerTools\OpenXmlPowerTools.Net35\OpenXmlPowerTools.Net35.csproj">
+      <Project>{9ea82a75-e131-43e4-bdf0-db7c402972ae}</Project>
+      <Name>OpenXmlPowerTools.Net35</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

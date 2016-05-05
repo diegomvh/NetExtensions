@@ -44,6 +44,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocumentFormat.OpenXml", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.IO.Packaging", "Third Parties\Open-XML-SDK\System.IO.Packaging\System.IO.Packaging.csproj", "{4C88A3AD-1241-4A04-854B-8372DF29828D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenXmlPowerTools.Net35", "Third Parties\Open-Xml-PowerTools\OpenXmlPowerTools.Net35\OpenXmlPowerTools.Net35.csproj", "{9EA82A75-E131-43E4-BDF0-DB7C402972AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,6 +92,10 @@ Global
 		{4C88A3AD-1241-4A04-854B-8372DF29828D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4C88A3AD-1241-4A04-854B-8372DF29828D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4C88A3AD-1241-4A04-854B-8372DF29828D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EA82A75-E131-43E4-BDF0-DB7C402972AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EA82A75-E131-43E4-BDF0-DB7C402972AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EA82A75-E131-43E4-BDF0-DB7C402972AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EA82A75-E131-43E4-BDF0-DB7C402972AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,6 +113,7 @@ Global
 		{6F957FF3-AFCC-4D69-8FBC-71AE21BC45C9} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{E5D39C6A-9067-477E-B0D3-A9419B86E6E5} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 		{4C88A3AD-1241-4A04-854B-8372DF29828D} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
+		{9EA82A75-E131-43E4-BDF0-DB7C402972AE} = {EC0DA68F-E44F-49F6-9056-F5BD78DB337A}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = NetExtensions.vsmdi
