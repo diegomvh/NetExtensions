@@ -32,6 +32,7 @@ using DIaLOGIKa.b2xtranslator.WordprocessingMLMapping;
 using DIaLOGIKa.b2xtranslator.Tools;
 using DIaLOGIKa.b2xtranslator.StructuredStorage.Common;
 using DIaLOGIKa.b2xtranslator.ZipUtils;
+using OpenXmlPowerTools;
 
 namespace Stj.OpenXml.Transformation
 {
@@ -171,11 +172,10 @@ namespace Stj.OpenXml.Transformation
             var element = node as XElement;
             if (element == null) return node;
 
-            // TODO Que carajo es W.r
-            if (element.Name == "")
+            if (element.Name == W.r)
             {
                 var children = element.Elements().ToList();
-                if (children.Count == 1 && children[0].Name == "" && children[0].IsEmpty)
+                if (children.Count == 1 && children[0].Name == W.t && children[0].IsEmpty)
                     return null;
             }
 
