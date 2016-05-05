@@ -41,6 +41,7 @@ namespace Stj.OpenXml.Extensions
     /// </summary>
     public static class OpenXmlPackageExtensions
     {
+        private static readonly object _saveAndCloneLock = new object();
         private static readonly XNamespace pkg = "http://schemas.microsoft.com/office/2006/xmlPackage";
         private static readonly XNamespace rel = "http://schemas.openxmlformats.org/package/2006/relationships";
 
@@ -57,7 +58,13 @@ namespace Stj.OpenXml.Extensions
 
         public static void Save(this OpenXmlPackage package)
         {
-            package.Package.Flush();
+            if (package.FileOpenAccess == FileAccess.ReadWrite)
+            {
+                lock (_saveAndCloneLock)
+                {
+                    package.Package.Flush();
+                }
+            }
         }
 
         public static OpenXmlPackage Clone(this OpenXmlPackage package)
@@ -83,13 +90,17 @@ namespace Stj.OpenXml.Extensions
             if (openSettings == null)
                 openSettings = new OpenSettings();
 
-            package.Package.Flush();
-            using (OpenXmlPackage clone = package.CreateClone(stream))
+            lock (_saveAndCloneLock)
             {
-                foreach (var part in package.Parts)
-                    clone.AddPart(part.OpenXmlPart, part.RelationshipId);
+
+                package.Save();
+                using (OpenXmlPackage clone = package.CreateClone(stream))
+                {
+                    foreach (var part in package.Parts)
+                        clone.AddPart(part.OpenXmlPart, part.RelationshipId);
+                }
+                return package.OpenClone(stream, isEditable, openSettings);
             }
-            return package.OpenClone(stream, isEditable, openSettings);
         }
 
         public static OpenXmlPackage CreateClone(this OpenXmlPackage package, string path) { return package; }
@@ -100,7 +111,7 @@ namespace Stj.OpenXml.Extensions
 
         public static XDocument ToFlatOpcDocument(this OpenXmlPackage package, XProcessingInstruction instruction)
         {
-            package.Package.Flush();
+            package.Save();
 
             // Create an XML document with a standalone declaration, processing
             // instruction (if not null), and a package root element with a
@@ -206,7 +217,7 @@ namespace Stj.OpenXml.Extensions
                 document.AddPart(part.OpenXmlPart, part.RelationshipId);
 
             // Save and return.
-            document.Package.Flush();
+            document.Save();
             return document;
         }
 

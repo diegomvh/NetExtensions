@@ -116,6 +116,38 @@ namespace Stj.OpenXml.Extensions
             return WordprocessingDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), package);
         }
 
+        public static WordprocessingDocument Clone(this WordprocessingDocument document)
+        {
+            return document.Clone(new MemoryStream(), true, new OpenSettings());
+        }
+
+        public static WordprocessingDocument Clone(this WordprocessingDocument document, Stream stream)
+        {
+            return document.Clone(stream, document.FileOpenAccess == FileAccess.ReadWrite, new OpenSettings());
+        }
+
+        public static WordprocessingDocument Clone(this WordprocessingDocument document, Stream stream, bool isEditable)
+        {
+            return document.Clone(stream, isEditable);
+        }
+
+        public static WordprocessingDocument Clone(this WordprocessingDocument document, Stream stream, bool isEditable, OpenSettings openSettings)
+        {
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+
+            if (openSettings == null)
+                openSettings = new OpenSettings();
+
+            document.Save();
+            using (OpenXmlPackage clone = document.CreateClone(stream))
+            {
+                foreach (var part in document.Parts)
+                    clone.AddPart(part.OpenXmlPart, part.RelationshipId);
+            }
+            return document.OpenClone(stream, isEditable, openSettings);
+        }
+
         public static WordprocessingDocument CreateClone(this WordprocessingDocument document, string path)
         {
             return WordprocessingDocument.Create(path, document.DocumentType, document.AutoSave);
@@ -693,6 +725,56 @@ namespace Stj.OpenXml.Extensions
             }
             string rID = mainPart.GetIdOfPart(altChunk);
             mainPart.Document.Body.Append(new AltChunk() { Id = rID });
+        }
+
+        public static WordprocessingDocument CreateFromTemplate(string path)
+        {
+            return CreateFromTemplate(path, true);
+        }
+
+        public static WordprocessingDocument CreateFromTemplate(string path, bool isTemplateAttached)
+        {
+            if (path == null)
+                throw new ArgumentNullException("path");
+
+            // Check extensions as the template must have a valid Word Open XML extension.
+            string extension = Path.GetExtension(path);
+            if (extension != ".docx" && extension != ".docm" && extension != ".dotx" && extension != ".dotm")
+                throw new ArgumentException("Illegal template file: " + path, "path");
+
+            using (WordprocessingDocument template = WordprocessingDocument.Open(path, false))
+            {
+                // We've opened the template in read-only mode to let multiple processes
+                // open it without running into problems.
+                WordprocessingDocument document = (WordprocessingDocument)template.Clone();
+
+                // If the template is a document rather than a template, we are done.
+                if (extension == ".docx" || extension == ".docm")
+                    return document;
+
+                // Otherwise, we'll have to do some more work.
+                // Firstly, we'll change the document type from Template to Document.
+                document.ChangeDocumentType(WordprocessingDocumentType.Document);
+
+                // Secondly, we'll attach the template to our new document if so desired.
+                if (isTemplateAttached)
+                {
+                    // Create a relative or absolute external relationship to the template.
+                    // TODO: Check whether relative URIs are universally supported. They work in Office 2010.
+                    MainDocumentPart mainDocumentPart = document.MainDocumentPart;
+                    DocumentSettingsPart documentSettingsPart = mainDocumentPart.DocumentSettingsPart;
+                    ExternalRelationship relationship = documentSettingsPart.AddExternalRelationship(
+                        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate",
+                        new Uri(path, UriKind.RelativeOrAbsolute));
+                    documentSettingsPart.Settings.Append(
+                        new DocumentFormat.OpenXml.Wordprocessing.AttachedTemplate() { Id = relationship.Id });
+                }
+
+                // We are done, so save and return.
+                // TODO: Check whether it would be safe to return without saving.
+                document.Save();
+                return document;
+            }
         }
     }
 }

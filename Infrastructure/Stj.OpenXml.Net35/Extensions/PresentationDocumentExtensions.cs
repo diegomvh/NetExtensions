@@ -27,6 +27,7 @@ using DocumentFormat.OpenXml.Packaging;
 using System.IO;
 using System.IO.Packaging;
 using System;
+using DocumentFormat.OpenXml;
 
 namespace Stj.OpenXml.Extensions
 {
@@ -41,6 +42,38 @@ namespace Stj.OpenXml.Extensions
         public static string ToFlatOpcString(this PresentationDocument document)
         {
             return document.ToFlatOpcDocument().ToString();
+        }
+
+        public static PresentationDocument Clone(this PresentationDocument document)
+        {
+            return document.Clone(new MemoryStream(), true, new OpenSettings());
+        }
+
+        public static PresentationDocument Clone(this PresentationDocument document, Stream stream)
+        {
+            return document.Clone(stream, document.FileOpenAccess == FileAccess.ReadWrite, new OpenSettings());
+        }
+
+        public static PresentationDocument Clone(this PresentationDocument document, Stream stream, bool isEditable)
+        {
+            return document.Clone(stream, isEditable);
+        }
+
+        public static PresentationDocument Clone(this PresentationDocument document, Stream stream, bool isEditable, OpenSettings openSettings)
+        {
+            if (stream == null)
+                throw new ArgumentNullException("stream");
+
+            if (openSettings == null)
+                openSettings = new OpenSettings();
+
+            document.Save();
+            using (OpenXmlPackage clone = document.CreateClone(stream))
+            {
+                foreach (var part in document.Parts)
+                    clone.AddPart(part.OpenXmlPart, part.RelationshipId);
+            }
+            return document.OpenClone(stream, isEditable, openSettings);
         }
 
         public static PresentationDocument CreateClone(this PresentationDocument document, string path)
@@ -135,6 +168,36 @@ namespace Stj.OpenXml.Extensions
                 throw new ArgumentNullException("package");
 
             return PresentationDocumentExtensions.FromFlatOpcDocument(XDocument.Parse(text), package);
+        }
+
+        public static PresentationDocument CreateFromTemplate(string path)
+        {
+            if (path == null)
+                throw new ArgumentNullException("path");
+
+            // Check extensions as the template must have a valid Word Open XML extension.
+            string extension = Path.GetExtension(path);
+            if (extension != ".pptx" && extension != ".pptm" && extension != ".potx" && extension != ".potm")
+                throw new ArgumentException("Illegal template file: " + path, "path");
+
+            using (PresentationDocument template = PresentationDocument.Open(path, false))
+            {
+                // We've opened the template in read-only mode to let multiple processes or
+                // threads open it without running into problems.
+                PresentationDocument document = (PresentationDocument)template.Clone();
+
+                // If the template is a document rather than a template, we are done.
+                if (extension == ".xlsx" || extension == ".xlsm")
+                    return document;
+
+                // Otherwise, we'll have to do some more work.
+                document.ChangeDocumentType(PresentationDocumentType.Presentation);
+
+                // We are done, so save and return.
+                // TODO: Check whether it would be safe to return without saving.
+                document.Save();
+                return document;
+            }
         }
     }
 }
