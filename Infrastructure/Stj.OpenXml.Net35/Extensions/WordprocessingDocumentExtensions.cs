@@ -35,6 +35,8 @@ using System.IO;
 using System.IO.Packaging;
 using DocumentFormat.OpenXml.CustomProperties;
 using DocumentFormat.OpenXml.VariantTypes;
+using OpenXmlPowerTools;
+using System.Drawing.Imaging;
 
 namespace Stj.OpenXml.Extensions
 {
@@ -128,7 +130,7 @@ namespace Stj.OpenXml.Extensions
 
         public static WordprocessingDocument Clone(this WordprocessingDocument document, Stream stream, bool isEditable)
         {
-            return document.Clone(stream, isEditable);
+            return document.Clone(stream, isEditable, new OpenSettings());
         }
 
         public static WordprocessingDocument Clone(this WordprocessingDocument document, Stream stream, bool isEditable, OpenSettings openSettings)
@@ -716,15 +718,98 @@ namespace Stj.OpenXml.Extensions
         public static void AppendHtmlImportPart(this WordprocessingDocument document, string htmlBody)
         {
             MainDocumentPart mainPart = document.MainDocumentPart;
+            if (mainPart == null)
+                mainPart = document.AddMainDocumentPart();
             AlternativeFormatImportPart altChunk = mainPart.AddAlternativeFormatImportPart(AlternativeFormatImportPartType.Html);
-            string html = string.Concat("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><html><head><title></title></head><body>", htmlBody, "</body></html>");
+            string html = string.Concat(@"<!DOCTYPE HTML PUBLIC ""-//W3C//DTD HTML 4.01 Transitional//EN"" ""http://www.w3.org/TR/html4/loose.dtd"">
+                <html><head><meta content=""text/html; charset=utf-8"" http-equiv=""Content-Type"" /></head><body>", htmlBody, "</body></html>");
             using (Stream stream = altChunk.GetStream())
             {
                 byte[] Origem = Encoding.UTF8.GetBytes(html);
                 stream.Write(Origem, 0, Origem.Length);
             }
             string rID = mainPart.GetIdOfPart(altChunk);
+            if (mainPart.Document == null)
+                mainPart.Document = new Document(new Body());
             mainPart.Document.Body.Append(new AltChunk() { Id = rID });
+        }
+
+        public static XElement ConvertToHtml(this WordprocessingDocument document,
+            string baseUrl, DirectoryInfo imagesDirectory = null)
+        {
+            var doc = document.Clone();
+            var mainPart = doc.MainDocumentPart;
+            if (mainPart.AlternativeFormatImportParts.Count() > 0)
+            {
+                var alt = mainPart.AlternativeFormatImportParts.First();
+                return XElement.Load(new StreamReader(alt.GetStream()).ReadToEnd());
+            }
+            else
+            {
+
+                if (imagesDirectory == null)
+                    imagesDirectory = new DirectoryInfo(System.AppDomain.CurrentDomain.BaseDirectory);
+                var imageCounter = 0;
+                var settings = new WmlToHtmlConverterSettings()
+                {
+                    ImageHandler = imageInfo =>
+                    {
+                        ++imageCounter;
+                        string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                        ImageFormat imageFormat = null;
+                        if (extension == "png")
+                            imageFormat = ImageFormat.Png;
+                        else if (extension == "gif")
+                            imageFormat = ImageFormat.Gif;
+                        else if (extension == "bmp")
+                            imageFormat = ImageFormat.Bmp;
+                        else if (extension == "jpeg")
+                            imageFormat = ImageFormat.Jpeg;
+                        else if (extension == "tiff")
+                        {
+                            // Convert tiff to gif.
+                            extension = "gif";
+                            imageFormat = ImageFormat.Gif;
+                        }
+                        else if (extension == "x-wmf")
+                        {
+                            extension = "wmf";
+                            imageFormat = ImageFormat.Wmf;
+                        }
+                        else if (extension == "x-emf")
+                        {
+                            extension = "emf";
+                            imageFormat = ImageFormat.Emf;
+                        }
+
+                        // If the image format isn't one that we expect, ignore it,
+                        // and don't return markup for the link.
+                        if (imageFormat == null)
+                            return null;
+
+                        string imageFileName = imagesDirectory + "/image" +
+                            imageCounter.ToString() + "." + extension;
+                        try
+                        {
+                            imageInfo.Bitmap.Save(imageFileName, imageFormat);
+                        }
+                        catch (System.Runtime.InteropServices.ExternalException)
+                        {
+                            return null;
+                        }
+                        string imageSource = baseUrl + "/" + imagesDirectory.Name + "/image" +
+                            imageCounter.ToString() + "." + extension;
+
+                        XElement img = new XElement(Xhtml.img,
+                            new XAttribute(NoNamespace.src, imageSource),
+                            imageInfo.ImgStyleAttribute,
+                            imageInfo.AltText != null ?
+                                new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                        return img;
+                    }
+                };
+                return WmlToHtmlConverter.ConvertToHtml(doc, settings);
+            }
         }
 
         public static WordprocessingDocument CreateFromTemplate(string path)
@@ -775,6 +860,16 @@ namespace Stj.OpenXml.Extensions
                 document.Save();
                 return document;
             }
+        }
+
+        public static void AddMacro(this WordprocessingDocument document,
+            string vbaProject, string vbaData)
+        {
+            var mainPart = document.MainDocumentPart;
+            var vbaProjectPart = mainPart.AddNewPart<VbaProjectPart>();
+            var vbaDataPart = vbaProjectPart.AddNewPart<VbaDataPart>();
+            vbaProjectPart.FeedData(new MemoryStream(System.Convert.FromBase64String(vbaProject)));
+            vbaDataPart.FeedData(new MemoryStream(System.Convert.FromBase64String(vbaData)));
         }
     }
 }

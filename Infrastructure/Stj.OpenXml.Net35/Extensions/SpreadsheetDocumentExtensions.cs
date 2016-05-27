@@ -28,6 +28,7 @@ using System.IO;
 using System.IO.Packaging;
 using System;
 using DocumentFormat.OpenXml;
+using System.Text;
 
 namespace Stj.OpenXml.Extensions
 {

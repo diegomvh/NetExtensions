@@ -103,5 +103,32 @@ namespace Stj.OpenXml.Extensions
             using (var xmlWriter = XmlWriter.Create(streamWriter))
                 root.WriteTo(xmlWriter);
         }
+
+        public static XDocument GetXDocument(this OpenXmlPart part)
+        {
+            XDocument xdoc = part.Annotation<XDocument>();
+            if (xdoc != null)
+                return xdoc;
+            using (StreamReader sr = new StreamReader(part.GetStream()))
+            using (XmlReader xr = XmlReader.Create(sr))
+                xdoc = XDocument.Load(xr);
+            part.AddAnnotation(xdoc);
+            return xdoc;
+        }
+
+        public static void PutXDocument(this OpenXmlPart part)
+        {
+            XDocument xdoc = part.GetXDocument();
+            if (xdoc != null)
+            {
+                // Serialize the XDocument object back to the package.
+                using (XmlWriter xw =
+                    XmlWriter.Create(part.GetStream
+                   (FileMode.Create, FileAccess.Write)))
+                {
+                    xdoc.Save(xw);
+                }
+            }
+        }
     }
 }

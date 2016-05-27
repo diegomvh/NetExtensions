@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using ContractArchitect.OpenXml.Extensions;
+using Stj.OpenXml.Extensions;
 using DIaLOGIKa.b2xtranslator.DocFileFormat;
 using DIaLOGIKa.b2xtranslator.StructuredStorage.Common;
 using DIaLOGIKa.b2xtranslator.StructuredStorage.Reader;

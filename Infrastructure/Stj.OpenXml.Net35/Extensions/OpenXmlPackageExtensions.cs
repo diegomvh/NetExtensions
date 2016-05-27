@@ -179,10 +179,17 @@ namespace Stj.OpenXml.Extensions
             }
         }
 
+        public static bool IsSigned(this OpenXmlPackage package)
+        {
+            var dsm = new PackageDigitalSignatureManager(package.Package);
+            return dsm.Signatures.Count() != 0;
+        }
+
         public static VerifyResult VerifySignatures(this OpenXmlPackage package)
         {
             var dsm = new PackageDigitalSignatureManager(package.Package);
-            foreach (PackageDigitalSignature signature in dsm.Signatures)
+            return dsm.VerifySignatures(false);
+            /* foreach (PackageDigitalSignature signature in dsm.Signatures)
             {
                 if (PackageDigitalSignatureManager.VerifyCertificate(signature.Signer)
                     != X509ChainStatusFlags.NoError)
@@ -191,7 +198,7 @@ namespace Stj.OpenXml.Extensions
                     //TODO: La firma esta bien que hacemos con ella
                 }
             }
-            return dsm.VerifySignatures(false);
+            */
         }
         
         /// <summary>
