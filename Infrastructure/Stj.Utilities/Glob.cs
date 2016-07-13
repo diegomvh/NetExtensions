@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Stj.Utilities.Extensions;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -536,22 +537,6 @@ namespace Stj.Utilities
                 foreach (var recursiveDir in GetDirectories(dirInfo))
                 {
                     yield return recursiveDir;
-                }
-            }
-        }
-    }
-
-    static class Extensions
-    {
-        internal static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source,
-            Func<TSource, TKey> keySelector)
-        {
-            HashSet<TKey> knownKeys = new HashSet<TKey>();
-            foreach (TSource element in source)
-            {
-                if (knownKeys.Add(keySelector(element)))
-                {
-                    yield return element;
                 }
             }
         }
