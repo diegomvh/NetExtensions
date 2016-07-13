@@ -100,6 +100,9 @@
     <Compile Include="Elmah\ElmahLogger.cs" />
     <Compile Include="Elmah\ElmahLoggerFactoryAdapter.cs" />
     <Compile Include="Encoding.cs" />
+    <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Files.cs" />
     <Compile Include="Format.cs" />
     <Compile Include="Glob.cs" />
