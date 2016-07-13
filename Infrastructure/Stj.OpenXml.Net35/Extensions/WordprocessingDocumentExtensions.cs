@@ -642,6 +642,69 @@ namespace Stj.OpenXml.Extensions
             return WordprocessingDocument.Open(OpenXmlPackageExtensions.FromFlatOpcDocumentCore(document, package));
         }
 
+        #region Tracked Revisions
+        public static System.Type[] trackedRevisionsElements = new System.Type[] {
+            typeof(CellDeletion),
+            typeof(CellInsertion),
+            typeof(CellMerge),
+            typeof(CustomXmlDelRangeEnd),
+            typeof(CustomXmlDelRangeStart),
+            typeof(CustomXmlInsRangeEnd),
+            typeof(CustomXmlInsRangeStart),
+            typeof(Deleted),
+            typeof(DeletedFieldCode),
+            typeof(DeletedMathControl),
+            typeof(DeletedRun),
+            typeof(DeletedText),
+            typeof(Inserted),
+            typeof(InsertedMathControl),
+            typeof(InsertedMathControl),
+            typeof(InsertedRun),
+            typeof(MoveFrom),
+            typeof(MoveFromRangeEnd),
+            typeof(MoveFromRangeStart),
+            typeof(MoveTo),
+            typeof(MoveToRangeEnd),
+            typeof(MoveToRangeStart),
+            typeof(MoveToRun),
+            typeof(NumberingChange),
+            typeof(ParagraphMarkRunPropertiesChange),
+            typeof(ParagraphPropertiesChange),
+            typeof(RunPropertiesChange),
+            typeof(SectionPropertiesChange),
+            typeof(TableCellPropertiesChange),
+            typeof(TableGridChange),
+            typeof(TablePropertiesChange),
+            typeof(TablePropertyExceptionsChange),
+            typeof(TableRowPropertiesChange),
+        };
+
+        public static bool PartHasTrackedRevisions(this OpenXmlPart part)
+        {
+            return part.RootElement.Descendants()
+                .Any(e => trackedRevisionsElements.Contains(e.GetType()));
+        }
+
+        public static bool HasTrackedRevisions(this WordprocessingDocument document)
+        {
+            if (document.MainDocumentPart.PartHasTrackedRevisions())
+                return true;
+            foreach (var part in document.MainDocumentPart.HeaderParts)
+                if (part.PartHasTrackedRevisions())
+                    return true;
+            foreach (var part in document.MainDocumentPart.FooterParts)
+                if (part.PartHasTrackedRevisions())
+                    return true;
+            if (document.MainDocumentPart.EndnotesPart != null)
+                if (document.MainDocumentPart.EndnotesPart.PartHasTrackedRevisions())
+                    return true;
+            if (document.MainDocumentPart.FootnotesPart != null)
+                if (document.MainDocumentPart.FootnotesPart.PartHasTrackedRevisions())
+                    return true;
+            return false;
+        }
+        #endregion
+
         public static void SetCustomProperty(this WordprocessingDocument document, string name,
             object value)
         {
@@ -739,77 +802,69 @@ namespace Stj.OpenXml.Extensions
         {
             var doc = document.Clone();
             var mainPart = doc.MainDocumentPart;
-            if (mainPart.AlternativeFormatImportParts.Count() > 0)
+            
+            if (imagesDirectory == null)
+                imagesDirectory = new DirectoryInfo(System.AppDomain.CurrentDomain.BaseDirectory);
+            var imageCounter = 0;
+            var settings = new WmlToHtmlConverterSettings()
             {
-                var alt = mainPart.AlternativeFormatImportParts.First();
-                return XElement.Load(new StreamReader(alt.GetStream()).ReadToEnd());
-            }
-            else
-            {
-
-                if (imagesDirectory == null)
-                    imagesDirectory = new DirectoryInfo(System.AppDomain.CurrentDomain.BaseDirectory);
-                var imageCounter = 0;
-                var settings = new WmlToHtmlConverterSettings()
+                ImageHandler = imageInfo =>
                 {
-                    ImageHandler = imageInfo =>
+                    ++imageCounter;
+                    string extension = imageInfo.ContentType.Split('/')[1].ToLower();
+                    ImageFormat imageFormat = null;
+                    if (extension == "png")
+                        imageFormat = ImageFormat.Png;
+                    else if (extension == "gif")
+                        imageFormat = ImageFormat.Gif;
+                    else if (extension == "bmp")
+                        imageFormat = ImageFormat.Bmp;
+                    else if (extension == "jpeg")
+                        imageFormat = ImageFormat.Jpeg;
+                    else if (extension == "tiff")
                     {
-                        ++imageCounter;
-                        string extension = imageInfo.ContentType.Split('/')[1].ToLower();
-                        ImageFormat imageFormat = null;
-                        if (extension == "png")
-                            imageFormat = ImageFormat.Png;
-                        else if (extension == "gif")
-                            imageFormat = ImageFormat.Gif;
-                        else if (extension == "bmp")
-                            imageFormat = ImageFormat.Bmp;
-                        else if (extension == "jpeg")
-                            imageFormat = ImageFormat.Jpeg;
-                        else if (extension == "tiff")
-                        {
-                            // Convert tiff to gif.
-                            extension = "gif";
-                            imageFormat = ImageFormat.Gif;
-                        }
-                        else if (extension == "x-wmf")
-                        {
-                            extension = "wmf";
-                            imageFormat = ImageFormat.Wmf;
-                        }
-                        else if (extension == "x-emf")
-                        {
-                            extension = "emf";
-                            imageFormat = ImageFormat.Emf;
-                        }
-
-                        // If the image format isn't one that we expect, ignore it,
-                        // and don't return markup for the link.
-                        if (imageFormat == null)
-                            return null;
-
-                        string imageFileName = imagesDirectory + "/image" +
-                            imageCounter.ToString() + "." + extension;
-                        try
-                        {
-                            imageInfo.Bitmap.Save(imageFileName, imageFormat);
-                        }
-                        catch (System.Runtime.InteropServices.ExternalException)
-                        {
-                            return null;
-                        }
-                        string imageSource = baseUrl + "/" + imagesDirectory.Name + "/image" +
-                            imageCounter.ToString() + "." + extension;
-
-                        XElement img = new XElement(Xhtml.img,
-                            new XAttribute(NoNamespace.src, imageSource),
-                            imageInfo.ImgStyleAttribute,
-                            imageInfo.AltText != null ?
-                                new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
-                        return img;
+                        // Convert tiff to gif.
+                        extension = "gif";
+                        imageFormat = ImageFormat.Gif;
                     }
-                };
-                return WmlToHtmlConverter.ConvertToHtml(doc, settings);
-            }
+                    else if (extension == "x-wmf")
+                    {
+                        extension = "wmf";
+                        imageFormat = ImageFormat.Wmf;
+                    }
+                    else if (extension == "x-emf")
+                    {
+                        extension = "emf";
+                        imageFormat = ImageFormat.Emf;
+                    }
+
+                    // If the image format isn't one that we expect, ignore it,
+                    // and don't return markup for the link.
+                    if (imageFormat == null)
+                        return null;
+
+                    string imageFileName = imagesDirectory + "/image" +
+                        imageCounter.ToString() + "." + extension;
+                    try
+                    {
+                        imageInfo.Bitmap.Save(imageFileName, imageFormat);
+                    }
+                    catch (System.Runtime.InteropServices.ExternalException)
+                    {
+                        return null;
+                    }
+                    string imageSource = baseUrl + "/" + imagesDirectory.Name + "/image" +
+                        imageCounter.ToString() + "." + extension;
+
+                    XElement img = new XElement(Xhtml.img,
+                        new XAttribute(NoNamespace.src, imageSource),
+                        imageInfo.ImgStyleAttribute,
+                        imageInfo.AltText != null ?
+                            new XAttribute(NoNamespace.alt, imageInfo.AltText) : null);
+                    return img;
+                }
+            };
+            return WmlToHtmlConverter.ConvertToHtml(doc, settings);
         }
 
         public static WordprocessingDocument CreateFromTemplate(string path)
@@ -870,6 +925,13 @@ namespace Stj.OpenXml.Extensions
             var vbaDataPart = vbaProjectPart.AddNewPart<VbaDataPart>();
             vbaProjectPart.FeedData(new MemoryStream(System.Convert.FromBase64String(vbaProject)));
             vbaDataPart.FeedData(new MemoryStream(System.Convert.FromBase64String(vbaData)));
+        }
+
+        public static void AddRibbon(this WordprocessingDocument document,
+            string ribbonExtensibility)
+        {
+            var ribbonExtensibilityPart = document.AddRibbonExtensibilityPart();
+            ribbonExtensibilityPart.FeedData(new MemoryStream(System.Convert.FromBase64String(ribbonExtensibility)));
         }
     }
 }

@@ -33,6 +33,7 @@ using System.Text;
 using System.Xml;
 using System.Security.Cryptography.X509Certificates;
 using DocumentFormat.OpenXml.CustomProperties;
+using System.Collections.ObjectModel;
 
 namespace Stj.OpenXml.Extensions
 {
@@ -181,24 +182,18 @@ namespace Stj.OpenXml.Extensions
 
         public static bool IsSigned(this OpenXmlPackage package)
         {
-            var dsm = new PackageDigitalSignatureManager(package.Package);
-            return dsm.Signatures.Count() != 0;
+            return new PackageDigitalSignatureManager(package.Package).IsSigned;
         }
 
         public static VerifyResult VerifySignatures(this OpenXmlPackage package)
         {
+            return new PackageDigitalSignatureManager(package.Package).VerifySignatures(false);
+        }
+
+        public static ReadOnlyCollection<PackageDigitalSignature> Signatures(this OpenXmlPackage package)
+        {
             var dsm = new PackageDigitalSignatureManager(package.Package);
-            return dsm.VerifySignatures(false);
-            /* foreach (PackageDigitalSignature signature in dsm.Signatures)
-            {
-                if (PackageDigitalSignatureManager.VerifyCertificate(signature.Signer)
-                    != X509ChainStatusFlags.NoError)
-                {
-                    var a = signature;
-                    //TODO: La firma esta bien que hacemos con ella
-                }
-            }
-            */
+            return dsm.Signatures;
         }
         
         /// <summary>
